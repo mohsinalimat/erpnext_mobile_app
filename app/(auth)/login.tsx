@@ -16,7 +16,7 @@ import { theme } from '@/constants/theme';
 import { Eye, EyeOff, Server } from 'lucide-react-native';
 
 export default function LoginScreen() {
-  const [serverUrl, setServerUrl] = useState('');
+  const [serverUrl, setServerUrl] = useState('https://paperware.jfmart.site');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);

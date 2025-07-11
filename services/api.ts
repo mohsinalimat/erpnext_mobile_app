@@ -1,29 +1,61 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
+
+// Your ERPNext server URL
+const ERPNEXT_SERVER_URL = 'https://paperware.jfmart.site';
 
 // Create axios instance
 const api = axios.create({
+  baseURL: ERPNEXT_SERVER_URL,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
+  timeout: 10000,
 });
+
+// Helper functions for storage (same as in AuthContext)
+const getStoredItem = async (key: string): Promise<string | null> => {
+  try {
+    if (Platform.OS === 'web') {
+      return localStorage.getItem(key);
+    } else {
+      return await SecureStore.getItemAsync(key);
+    }
+  } catch (error) {
+    console.error(`Error getting stored item: ${key}`, error);
+    return null;
+  }
+};
 
 // Add interceptors to set the base URL and auth token
 api.interceptors.request.use(async (config) => {
-  const serverUrl = await SecureStore.getItemAsync('serverUrl');
-  const token = await SecureStore.getItemAsync('token');
-  
-  if (serverUrl) {
-    config.baseURL = serverUrl;
-  }
+  const token = await getStoredItem('token');
+  const sessionId = await getStoredItem('sessionId');
   
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   
+  if (sessionId) {
+    config.headers.Cookie = sessionId;
+  }
+  
   return config;
 });
+
+// Add response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Handle unauthorized access
+      console.log('Unauthorized access - redirecting to login');
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Authentication
 export const loginToERPNext = async (
@@ -32,45 +64,38 @@ export const loginToERPNext = async (
   password: string
 ) => {
   try {
-    // For development only - mock login response
-    if (process.env.NODE_ENV === 'development') {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      return {
-        user: {
-          id: '1',
-          name: 'John Doe',
-          email: email,
-          role: 'System Manager',
-        },
-        token: 'mock-token-12345',
-      };
-    }
-    
-    // Real implementation would call the ERPNext login API
-    const response = await axios.post(`${serverUrl}/api/method/login`, {
+    // Call ERPNext login API
+    const response = await axios.post(`${ERPNEXT_SERVER_URL}/api/method/login`, {
       usr: email,
       pwd: password,
+    }, {
+      withCredentials: true,
     });
     
-    // Handle auth response
     if (response.data && response.data.message === 'Logged In') {
-      // Fetch user info
-      const userResponse = await axios.get(`${serverUrl}/api/method/frappe.auth.get_logged_user`, {
-        headers: {
-          'Cookie': response.headers['set-cookie']?.[0] || '',
-        },
+      // Get session cookie
+      const sessionCookie = response.headers['set-cookie']?.[0] || '';
+      
+      // Fetch user details
+      const userResponse = await axios.get(`${ERPNEXT_SERVER_URL}/api/method/frappe.auth.get_logged_user`, {
+        headers: { Cookie: sessionCookie },
+        withCredentials: true,
+      });
+      
+      // Get user profile information
+      const profileResponse = await axios.get(`${ERPNEXT_SERVER_URL}/api/resource/User/${email}`, {
+        headers: { Cookie: sessionCookie },
+        withCredentials: true,
       });
       
       return {
         user: {
-          id: userResponse.data.message,
-          name: userResponse.data.message, // Would need another API call to get full name
+          id: email,
+          name: profileResponse.data.data.full_name || profileResponse.data.data.first_name || email,
           email: email,
-          role: 'User', // Would need another API call to get roles
+          role: profileResponse.data.data.role_profile_name || 'User',
         },
-        token: response.headers['set-cookie']?.[0] || '',
+        sessionId: sessionCookie,
       };
     }
     
@@ -79,12 +104,16 @@ export const loginToERPNext = async (
     console.error('Login error:', error);
     if (error.response?.status === 401) {
       throw new Error('Invalid email or password');
+    } else if (error.response?.status === 403) {
+      throw new Error('Access denied. Please check your permissions');
     } else if (error.response?.status === 404) {
       throw new Error('ERPNext server not found. Please check the URL');
     } else if (error.code === 'ECONNABORTED') {
       throw new Error('Connection timeout. Please check your network');
     } else if (error.message === 'Network Error') {
       throw new Error('Network error. Please check your connection');
+    } else if (error.code === 'ERR_NETWORK') {
+      throw new Error('Cannot connect to ERPNext server. Please check the URL and your network');
     }
     throw new Error(error.message || 'Login failed');
   }
@@ -93,117 +122,126 @@ export const loginToERPNext = async (
 // Dashboard data
 export const fetchDashboardData = async () => {
   try {
-    // For development only - mock dashboard data
-    if (process.env.NODE_ENV === 'development') {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      return {
-        salesTotal: 125750.25,
-        newCustomers: 8,
-        openOrders: 12,
-        pendingTasks: 5,
-        alerts: [
-          {
-            title: 'Low Inventory Alert',
-            message: 'Product SKU-123 is below minimum stock level',
-            type: 'warning',
-          },
-          {
-            title: 'Payment Overdue',
-            message: 'Customer ABC Corp has 3 overdue invoices',
-            type: 'error',
-          },
-        ],
-        recentSales: [
-          {
-            id: 'SINV-001',
-            customer: 'Acme Inc.',
-            amount: 12500.00,
-            description: 'Annual subscription renewal',
-          },
-          {
-            id: 'SINV-002',
-            customer: 'Tech Solutions Ltd.',
-            amount: 8750.50,
-            description: 'Consulting services',
-          },
-          {
-            id: 'SINV-003',
-            customer: 'Global Enterprises',
-            amount: 22340.75,
-            description: 'Hardware purchase',
-          },
-        ],
-      };
+    // Fetch dashboard data from multiple ERPNext endpoints
+    const [salesResponse, customersResponse, ordersResponse] = await Promise.allSettled([
+      // Get sales data
+      api.get('/api/resource/Sales Invoice', {
+        params: {
+          fields: '["grand_total", "posting_date", "customer"]',
+          filters: JSON.stringify([['posting_date', '>=', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]]]),
+          limit_page_length: 100,
+        },
+      }),
+      // Get customer count
+      api.get('/api/resource/Customer', {
+        params: {
+          fields: '["name", "creation"]',
+          filters: JSON.stringify([['creation', '>=', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]]]),
+          limit_page_length: 1000,
+        },
+      }),
+      // Get sales orders
+      api.get('/api/resource/Sales Order', {
+        params: {
+          fields: '["name", "status", "grand_total", "customer"]',
+          filters: JSON.stringify([['status', '!=', 'Completed']]),
+          limit_page_length: 100,
+        },
+      }),
+    ]);
+
+    // Process sales data
+    let salesTotal = 0;
+    let recentSales = [];
+    if (salesResponse.status === 'fulfilled') {
+      const salesData = salesResponse.value.data.data || [];
+      salesTotal = salesData.reduce((sum, invoice) => sum + (invoice.grand_total || 0), 0);
+      recentSales = salesData.slice(0, 3).map(invoice => ({
+        id: invoice.name,
+        customer: invoice.customer,
+        amount: invoice.grand_total || 0,
+        description: `Invoice ${invoice.name}`,
+      }));
     }
-    
-    // Real implementation would call multiple ERPNext API endpoints
-    const response = await api.get('/api/method/erpnext.api.get_dashboard_data');
-    return response.data;
+
+    // Process customer data
+    let newCustomers = 0;
+    if (customersResponse.status === 'fulfilled') {
+      newCustomers = customersResponse.value.data.data?.length || 0;
+    }
+
+    // Process orders data
+    let openOrders = 0;
+    if (ordersResponse.status === 'fulfilled') {
+      openOrders = ordersResponse.value.data.data?.length || 0;
+    }
+
+    return {
+      salesTotal,
+      newCustomers,
+      openOrders,
+      pendingTasks: 0, // Would need to fetch from ToDo or Task doctype
+      alerts: [], // Would need custom logic based on your business rules
+      recentSales,
+    };
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
-    throw error;
+    // Return fallback data if API calls fail
+    return {
+      salesTotal: 0,
+      newCustomers: 0,
+      openOrders: 0,
+      pendingTasks: 0,
+      alerts: [{
+        title: 'Connection Error',
+        message: 'Unable to fetch latest data from ERPNext',
+        type: 'warning',
+      }],
+      recentSales: [],
+    };
   }
 };
 
 // Search
 export const searchERPNextData = async (query: string, docType: string = 'All') => {
   try {
-    // For development only - mock search results
-    if (process.env.NODE_ENV === 'development') {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      
-      // If no query, return empty results
-      if (!query.trim()) {
-        return [];
-      }
-      
-      // Sample search results
-      const allResults = [
-        { id: '1', title: 'SINV-00001', subtitle: 'Invoice for Acme Inc.', type: 'Invoice' },
-        { id: '2', title: 'Acme Inc.', subtitle: 'Customer', type: 'Customer' },
-        { id: '3', title: 'John Smith', subtitle: 'Contact', type: 'Contact' },
-        { id: '4', title: 'SO-00123', subtitle: 'Sales Order for XYZ Corp', type: 'Sales Order' },
-        { id: '5', title: 'Project Alpha', subtitle: 'In Progress', type: 'Project' },
-        { id: '6', title: 'Widget X', subtitle: 'Item', type: 'Item' },
-      ];
-      
-      // Filter by doc type if not "All"
-      if (docType !== 'All') {
-        return allResults.filter(result => result.type === docType);
-      }
-      
-      // Filter by query
-      return allResults.filter(result => 
-        result.title.toLowerCase().includes(query.toLowerCase()) || 
-        result.subtitle.toLowerCase().includes(query.toLowerCase())
-      );
+    if (!query.trim()) {
+      return [];
     }
     
-    // Real implementation would call the ERPNext search API
-    const response = await api.get('/api/method/frappe.desk.search.search_widget', {
+    // Use ERPNext's global search API
+    const response = await api.get('/api/method/frappe.desk.search.search_link', {
       params: {
         txt: query,
-        doctype: docType === 'All' ? '' : docType,
+        doctype: docType === 'All' ? undefined : docType,
+        ignore_user_permissions: 0,
       },
     });
     
-    // Transform the response to match our format
-    if (response.data && response.data.message) {
-      return response.data.message.map((item: any) => ({
+    if (response.data?.message) {
+      return response.data.message.map((item: any, index: number) => ({
         id: item.value,
-        title: item.label || item.value,
+        title: item.value,
         subtitle: item.description || '',
-        type: item.type || docType,
+        type: docType === 'All' ? 'Document' : docType,
       }));
     }
     
     return [];
   } catch (error) {
     console.error('Error performing search:', error);
-    throw error;
+    return [];
+  }
+};
+
+// Get ERPNext server info
+export const getServerInfo = async () => {
+  try {
+    const response = await api.get('/api/method/frappe.utils.change_log.get_versions');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching server info:', error);
+    return null;
   }
 };
 

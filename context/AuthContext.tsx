@@ -120,11 +120,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     
     try {
-      const { user, token } = await loginToERPNext(serverUrl, email, password);
+      const { user, sessionId } = await loginToERPNext(serverUrl, email, password);
       
       // Store auth data
       await setStoredItem('user', JSON.stringify(user));
-      await setStoredItem('token', token);
+      await setStoredItem('sessionId', sessionId);
       await setStoredItem('serverUrl', serverUrl);
       
       setUser(user);
@@ -140,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       await removeStoredItem('user');
-      await removeStoredItem('token');
+      await removeStoredItem('sessionId');
       await removeStoredItem('serverUrl');
       
       setUser(null);

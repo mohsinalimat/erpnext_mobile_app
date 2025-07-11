@@ -4,6 +4,8 @@ import { Platform } from 'react-native';
 
 // Your ERPNext server URL
 const ERPNEXT_SERVER_URL = 'https://paperware.jfmart.site';
+const API_KEY = '6341dc2d216041b';
+const API_SECRET = 'c44a3826a1a9335';
 
 // Create axios instance
 const api = axios.create({
@@ -11,6 +13,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'Authorization': `token ${API_KEY}:${API_SECRET}`,
   },
   timeout: 10000,
 });
@@ -31,16 +34,8 @@ const getStoredItem = async (key: string): Promise<string | null> => {
 
 // Add interceptors to set the base URL and auth token
 api.interceptors.request.use(async (config) => {
-  const token = await getStoredItem('token');
-  const sessionId = await getStoredItem('sessionId');
-  
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  
-  if (sessionId) {
-    config.headers.Cookie = sessionId;
-  }
+  // API key is already set in the default headers
+  config.headers.Authorization = `token ${API_KEY}:${API_SECRET}`;
   
   return config;
 });
@@ -64,50 +59,30 @@ export const loginToERPNext = async (
   password: string
 ) => {
   try {
-    // Call ERPNext login API
-    const response = await axios.post(`${ERPNEXT_SERVER_URL}/api/method/login`, {
-      usr: email,
-      pwd: password,
-    }, {
-      withCredentials: true,
-    });
+    // With API key authentication, we can directly fetch user information
+    // First verify the API key works by making a test call
+    const testResponse = await api.get('/api/method/frappe.auth.get_logged_user');
     
-    if (response.data && response.data.message === 'Logged In') {
-      // Get session cookie
-      const sessionCookie = response.headers['set-cookie']?.[0] || '';
-      
-      // Fetch user details
-      const userResponse = await axios.get(`${ERPNEXT_SERVER_URL}/api/method/frappe.auth.get_logged_user`, {
-        headers: { Cookie: sessionCookie },
-        withCredentials: true,
-      });
-      
-      // Get user profile information
-      const profileResponse = await axios.get(`${ERPNEXT_SERVER_URL}/api/resource/User/${email}`, {
-        headers: { Cookie: sessionCookie },
-        withCredentials: true,
-      });
-      
-      return {
-        user: {
-          id: email,
-          name: profileResponse.data.data.full_name || profileResponse.data.data.first_name || email,
-          email: email,
-          role: profileResponse.data.data.role_profile_name || 'User',
-        },
-        sessionId: sessionCookie,
-      };
-    }
+    // Get user profile information
+    const profileResponse = await api.get(`/api/resource/User/${email}`);
     
-    throw new Error('Login failed');
+    return {
+      user: {
+        id: email,
+        name: profileResponse.data.data.full_name || profileResponse.data.data.first_name || email,
+        email: email,
+        role: profileResponse.data.data.role_profile_name || 'User',
+      },
+      token: `${API_KEY}:${API_SECRET}`,
+    };
   } catch (error: any) {
     console.error('Login error:', error);
     if (error.response?.status === 401) {
-      throw new Error('Invalid email or password');
+      throw new Error('Invalid API credentials or user not found');
     } else if (error.response?.status === 403) {
       throw new Error('Access denied. Please check your permissions');
     } else if (error.response?.status === 404) {
-      throw new Error('ERPNext server not found. Please check the URL');
+      throw new Error('User not found or ERPNext server not accessible');
     } else if (error.code === 'ECONNABORTED') {
       throw new Error('Connection timeout. Please check your network');
     } else if (error.message === 'Network Error') {
@@ -115,7 +90,7 @@ export const loginToERPNext = async (
     } else if (error.code === 'ERR_NETWORK') {
       throw new Error('Cannot connect to ERPNext server. Please check the URL and your network');
     }
-    throw new Error(error.message || 'Login failed');
+    throw new Error(error.message || 'Authentication failed');
   }
 };
 

@@ -23,7 +23,7 @@ export default function ModulesScreen() {
       description: 'Manage customer data and interactions',
       icon: Users,
       color: theme.colors.primary[500],
-      route: '/customers',
+      route: '/(tabs)/modules/customers',
     },
     {
       id: 'sales',
@@ -31,7 +31,7 @@ export default function ModulesScreen() {
       description: 'Orders, invoices, and payments',
       icon: ShoppingCart,
       color: theme.colors.blue[500],
-      route: '/sales',
+      route: '/(tabs)/modules/sales-orders',
     },
     {
       id: 'inventory',
@@ -39,7 +39,7 @@ export default function ModulesScreen() {
       description: 'Stock levels and warehouse management',
       icon: Package,
       color: theme.colors.green[500],
-      route: '/inventory',
+      route: '/(tabs)/modules/items',
     },
     {
       id: 'accounting',
@@ -47,7 +47,7 @@ export default function ModulesScreen() {
       description: 'Financial reports and statements',
       icon: FileText,
       color: theme.colors.yellow[500],
-      route: '/accounting',
+      route: '/(tabs)/modules/quotations',
     },
     {
       id: 'hr',
@@ -131,7 +131,7 @@ export default function ModulesScreen() {
               title={module.title}
               icon={module.icon}
               color={module.color}
-              onPress={() => console.log(`Navigate to ${module.route}`)}
+              route={module.route}
             />
           ))}
         </View>

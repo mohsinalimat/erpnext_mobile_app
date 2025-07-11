@@ -2,17 +2,22 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { theme } from '@/constants/theme';
 import { Video as LucideIcon } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 interface ModuleCardProps {
   title: string;
   icon: LucideIcon;
   color: string;
-  onPress: () => void;
+  route: string;
 }
 
-const ModuleCard: React.FC<ModuleCardProps> = ({ title, icon: Icon, color, onPress }) => {
+const ModuleCard: React.FC<ModuleCardProps> = ({ title, icon: Icon, color, route }) => {
+  const handlePress = () => {
+    router.push(route as any);
+  };
+
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
+    <TouchableOpacity style={styles.container} onPress={handlePress}>
       <View style={[styles.iconContainer, { backgroundColor: color }]}>
         <Icon size={24} color={theme.colors.white} />
       </View>

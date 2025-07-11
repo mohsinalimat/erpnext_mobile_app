@@ -93,7 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(mockUser);
           setIsAuthenticated(true);
           await setStoredItem('user', JSON.stringify(mockUser));
-          await setStoredItem('token', 'mock-token');
+          await setStoredItem('token', '6341dc2d216041b:c44a3826a1a9335');
           await setStoredItem('serverUrl', 'https://demo.erpnext.com');
         } else {
           const storedUser = await getStoredItem('user');
@@ -120,11 +120,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     
     try {
-      const { user, sessionId } = await loginToERPNext(serverUrl, email, password);
+      const { user, token } = await loginToERPNext(serverUrl, email, password);
       
       // Store auth data
       await setStoredItem('user', JSON.stringify(user));
-      await setStoredItem('sessionId', sessionId);
+      await setStoredItem('token', token);
       await setStoredItem('serverUrl', serverUrl);
       
       setUser(user);
@@ -140,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       await removeStoredItem('user');
-      await removeStoredItem('sessionId');
+      await removeStoredItem('token');
       await removeStoredItem('serverUrl');
       
       setUser(null);

@@ -1,0 +1,1 @@
+erpnext_mobile_app

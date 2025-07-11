@@ -11,7 +11,7 @@ import {
   Image,
 } from 'react-native';
 import { theme } from '@/constants/theme';
-import { Search, Plus, Package, DollarSign, BarChart3, Tag } from 'lucide-react-native';
+import { Search, Plus, Package, DollarSign, ChartBar as BarChart3, Tag } from 'lucide-react-native';
 import api from '@/services/api';
 
 interface Item {

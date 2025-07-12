@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { theme } from '@/constants/theme';
-import { Home, Search, ShoppingCart, User, Plus, FileText, Users, ShoppingBag } from 'lucide-react-native';
+import { Home, Search, User, Plus, FileText, Users, ShoppingBag } from 'lucide-react-native';
 
 const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -87,7 +87,7 @@ const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => 
               case 'search':
                 return <Search color={isFocused ? theme.colors.primary[500] : theme.colors.gray[500]} />;
               case 'reports':
-                return <ShoppingCart color={isFocused ? theme.colors.primary[500] : theme.colors.gray[500]} />;
+                return <FileText color={isFocused ? theme.colors.primary[500] : theme.colors.gray[500]} />;
               case 'settings':
                 return <User color={isFocused ? theme.colors.primary[500] : theme.colors.gray[500]} />;
               default:
@@ -96,15 +96,7 @@ const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => 
           };
 
           if (index === centerIndex) {
-            return (
-              <TouchableOpacity
-                key={route.key}
-                onPress={() => setModalVisible(true)}
-                style={styles.centerButton}
-              >
-                <Plus color={theme.colors.white} />
-              </TouchableOpacity>
-            );
+            return <View key={route.key} style={styles.tabButton} />;
           }
 
           return (
@@ -118,12 +110,18 @@ const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => 
               style={styles.tabButton}
             >
               {getIcon()}
-              <Text style={{ color: isFocused ? theme.colors.primary[500] : theme.colors.gray[500] }}>
+              <Text style={{ color: isFocused ? theme.colors.primary[500] : theme.colors.gray[500], marginTop: 4 }}>
                 {label.toString()}
               </Text>
             </TouchableOpacity>
           );
         })}
+        <TouchableOpacity
+          onPress={() => setModalVisible(true)}
+          style={styles.centerButton}
+        >
+          <Plus color={theme.colors.white} />
+        </TouchableOpacity>
       </View>
     </>
   );

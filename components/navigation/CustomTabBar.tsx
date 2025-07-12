@@ -1,89 +1,131 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { theme } from '@/constants/theme';
-import { Home, Search, ShoppingCart, User } from 'lucide-react-native';
+import { Home, Search, ShoppingCart, User, Plus, FileText, Users, ShoppingBag } from 'lucide-react-native';
 
 const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
+  const [modalVisible, setModalVisible] = useState(false);
   const centerIndex = Math.floor(state.routes.length / 2);
 
+  const menuItems = [
+    { label: 'Quotation', icon: <FileText color={theme.colors.primary[500]} />, route: 'quotations' },
+    { label: 'Customer', icon: <Users color={theme.colors.primary[500]} />, route: 'customers' },
+    { label: 'Sales Order', icon: <ShoppingBag color={theme.colors.primary[500]} />, route: 'sales-orders' },
+  ];
+
+  const handleMenuItemPress = (route: string) => {
+    setModalVisible(false);
+    navigation.navigate('modules', { screen: route });
+  };
+
   return (
-    <View style={styles.container}>
-      {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
-        const label =
-          options.tabBarLabel !== undefined
-            ? options.tabBarLabel
-            : options.title !== undefined
-            ? options.title
-            : route.name;
+    <>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPressOut={() => setModalVisible(false)}
+        >
+          <View style={styles.modalView}>
+            {menuItems.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.menuItem}
+                onPress={() => handleMenuItemPress(item.route)}
+              >
+                {item.icon}
+                <Text style={styles.menuItemText}>{item.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
-        const isFocused = state.index === index;
+      <View style={styles.container}>
+        {state.routes.map((route, index) => {
+          const { options } = descriptors[route.key];
+          const label =
+            options.tabBarLabel !== undefined
+              ? options.tabBarLabel
+              : options.title !== undefined
+              ? options.title
+              : route.name;
 
-        const onPress = () => {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-            canPreventDefault: true,
-          });
+          const isFocused = state.index === index;
 
-          if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
+          const onPress = () => {
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
+
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          };
+
+          const onLongPress = () => {
+            navigation.emit({
+              type: 'tabLongPress',
+              target: route.key,
+            });
+          };
+
+          const getIcon = () => {
+            switch (route.name) {
+              case 'index':
+                return <Home color={isFocused ? theme.colors.primary[500] : theme.colors.gray[500]} />;
+              case 'search':
+                return <Search color={isFocused ? theme.colors.primary[500] : theme.colors.gray[500]} />;
+              case 'reports':
+                return <ShoppingCart color={isFocused ? theme.colors.primary[500] : theme.colors.gray[500]} />;
+              case 'settings':
+                return <User color={isFocused ? theme.colors.primary[500] : theme.colors.gray[500]} />;
+              default:
+                return null;
+            }
+          };
+
+          if (index === centerIndex) {
+            return (
+              <TouchableOpacity
+                key={route.key}
+                onPress={() => setModalVisible(true)}
+                style={styles.centerButton}
+              >
+                <Plus color={theme.colors.white} />
+              </TouchableOpacity>
+            );
           }
-        };
 
-        const onLongPress = () => {
-          navigation.emit({
-            type: 'tabLongPress',
-            target: route.key,
-          });
-        };
-
-        const getIcon = () => {
-          switch (route.name) {
-            case 'index':
-              return <Home color={isFocused ? theme.colors.primary[500] : theme.colors.gray[500]} />;
-            case 'search':
-              return <Search color={isFocused ? theme.colors.primary[500] : theme.colors.gray[500]} />;
-            case 'reports':
-              return <ShoppingCart color={isFocused ? theme.colors.primary[500] : theme.colors.gray[500]} />;
-            case 'settings':
-              return <User color={isFocused ? theme.colors.primary[500] : theme.colors.gray[500]} />;
-            default:
-              return null;
-          }
-        };
-
-        if (index === centerIndex) {
           return (
             <TouchableOpacity
               key={route.key}
-              onPress={() => navigation.navigate('modules')}
-              style={styles.centerButton}
+              accessibilityRole="button"
+              accessibilityState={isFocused ? { selected: true } : {}}
+              accessibilityLabel={options.tabBarAccessibilityLabel}
+              onPress={onPress}
+              onLongPress={onLongPress}
+              style={styles.tabButton}
             >
-              <Home color={theme.colors.white} />
+              {getIcon()}
+              <Text style={{ color: isFocused ? theme.colors.primary[500] : theme.colors.gray[500] }}>
+                {label.toString()}
+              </Text>
             </TouchableOpacity>
           );
-        }
-
-        return (
-          <TouchableOpacity
-            key={route.key}
-            accessibilityRole="button"
-            accessibilityState={isFocused ? { selected: true } : {}}
-            accessibilityLabel={options.tabBarAccessibilityLabel}
-            onPress={onPress}
-            onLongPress={onLongPress}
-            style={styles.tabButton}
-          >
-            {getIcon()}
-            <Text style={{ color: isFocused ? theme.colors.primary[500] : theme.colors.gray[500] }}>
-              {label.toString()}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
+        })}
+      </View>
+    </>
   );
 };
 
@@ -105,20 +147,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  modulesButton: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modulesIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: theme.colors.primary[500],
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 30,
-  },
   centerButton: {
     width: 60,
     height: 60,
@@ -129,6 +157,39 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 40,
     alignSelf: 'center',
+    left: '50%',
+    marginLeft: -30,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalView: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    width: '100%',
+  },
+  menuItemText: {
+    marginLeft: 15,
+    fontSize: 18,
+    color: theme.colors.text.primary,
   },
 });
 

@@ -1,144 +1,81 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
+  ActivityIndicator,
   TouchableOpacity,
   TextInput,
-  ActivityIndicator,
-  RefreshControl,
-  Image,
+  Modal,
 } from 'react-native';
 import { theme } from '@/constants/theme';
-import { Search, Plus, Package, DollarSign, ChartBar as BarChart3, Tag } from 'lucide-react-native';
-import api from '@/services/api';
+import { Plus, Search, Filter } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { getItems } from '@/services/erpnext';
 
 interface Item {
   name: string;
   item_name: string;
-  item_code: string;
   item_group: string;
-  stock_uom: string;
-  standard_rate: number;
-  is_stock_item: number;
-  disabled: number;
-  image?: string;
-  description?: string;
 }
 
 export default function ItemsScreen() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
-
-  const fetchItems = async () => {
-    try {
-      const response = await api.get('/api/resource/Item', {
-        params: {
-          fields: JSON.stringify([
-            'name',
-            'item_name',
-            'item_code',
-            'item_group',
-            'stock_uom',
-            'standard_rate',
-            'is_stock_item',
-            'disabled',
-            'image',
-            'description'
-          ]),
-          limit_page_length: 100,
-          order_by: 'creation desc',
-        },
-      });
-      
-      const itemData = response.data.data || [];
-      setItems(itemData);
-      setFilteredItems(itemData);
-    } catch (error) {
-      console.error('Error fetching items:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const itemList = await getItems();
+        setItems(itemList);
+        setFilteredItems(itemList);
+      } catch (e: any) {
+        setError(e.message || 'Failed to fetch items');
+        console.error('Failed to fetch items error:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchItems();
   }, []);
 
   useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredItems(items);
-    } else {
-      const filtered = items.filter(item =>
-        item.item_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.item_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.item_group.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredItems(filtered);
-    }
+    const lowercasedQuery = searchQuery.toLowerCase();
+    const filtered = items.filter(
+      (item) =>
+        item.item_name.toLowerCase().includes(lowercasedQuery) ||
+        item.name.toLowerCase().includes(lowercasedQuery) ||
+        item.item_group.toLowerCase().includes(lowercasedQuery)
+    );
+    setFilteredItems(filtered);
   }, [searchQuery, items]);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchItems();
+  const handleFilter = () => {
+    setIsFilterModalVisible(true);
   };
 
-  const renderItemCard = ({ item }: { item: Item }) => (
-    <TouchableOpacity style={[styles.itemCard, item.disabled && styles.disabledCard]}>
-      <View style={styles.itemHeader}>
-        <View style={styles.itemImageContainer}>
-          {item.image ? (
-            <Image source={{ uri: item.image }} style={styles.itemImage} />
-          ) : (
-            <View style={styles.placeholderImage}>
-              <Package size={24} color={theme.colors.gray[400]} />
-            </View>
-          )}
-        </View>
-        
-        <View style={styles.itemInfo}>
-          <Text style={styles.itemName}>{item.item_name}</Text>
-          <Text style={styles.itemCode}>{item.item_code}</Text>
-          
-          <View style={styles.itemTags}>
-            <View style={styles.tag}>
-              <Tag size={12} color={theme.colors.primary[600]} />
-              <Text style={styles.tagText}>{item.item_group}</Text>
-            </View>
-            {item.is_stock_item === 1 && (
-              <View style={[styles.tag, styles.stockTag]}>
-                <BarChart3 size={12} color={theme.colors.success[600]} />
-                <Text style={[styles.tagText, { color: theme.colors.success[600] }]}>Stock Item</Text>
-              </View>
-            )}
-            {item.disabled === 1 && (
-              <View style={[styles.tag, styles.disabledTag]}>
-                <Text style={[styles.tagText, { color: theme.colors.error[600] }]}>Disabled</Text>
-              </View>
-            )}
-          </View>
-        </View>
-        
-        <View style={styles.priceContainer}>
-          <Text style={styles.price}>
-            {item.standard_rate ? `₹${item.standard_rate.toLocaleString()}` : 'No Price'}
-          </Text>
-          <Text style={styles.uom}>per {item.stock_uom}</Text>
-        </View>
-      </View>
-      
-      {item.description && (
-        <Text style={styles.description} numberOfLines={2}>
-          {item.description}
-        </Text>
-      )}
+  const applyFilter = (value: string) => {
+    setIsFilterModalVisible(false);
+    const filtered = items.filter((item) => item.item_group === value);
+    setFilteredItems(filtered);
+  };
+
+  const uniqueItemGroups = useMemo(() => {
+    return [...new Set(items.map((item) => item.item_group))];
+  }, [items]);
+
+  const renderFilterItem = useCallback(({ item }: { item: string }) => (
+    <TouchableOpacity style={styles.filterItem} onPress={() => applyFilter(item)}>
+      <Text style={styles.filterText}>{item}</Text>
     </TouchableOpacity>
-  );
+  ), [applyFilter]);
 
   if (loading) {
     return (
@@ -149,11 +86,13 @@ export default function ItemsScreen() {
     );
   }
 
-  const stockItems = items.filter(item => item.is_stock_item === 1).length;
-  const activeItems = items.filter(item => item.disabled === 0).length;
-  const avgPrice = items.length > 0 
-    ? items.reduce((sum, item) => sum + (item.standard_rate || 0), 0) / items.length 
-    : 0;
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -168,44 +107,45 @@ export default function ItemsScreen() {
             placeholderTextColor={theme.colors.gray[400]}
           />
         </View>
-        <TouchableOpacity style={styles.addButton}>
-          <Plus size={20} color={theme.colors.white} />
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => router.push('/(tabs)/modules/new-item')}
+        >
+          <Plus size={24} color={theme.colors.white} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.filterButton} onPress={handleFilter}>
+          <Filter size={24} color={theme.colors.gray[700]} />
         </TouchableOpacity>
       </View>
-
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{items.length}</Text>
-          <Text style={styles.statLabel}>Total Items</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{stockItems}</Text>
-          <Text style={styles.statLabel}>Stock Items</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{activeItems}</Text>
-          <Text style={styles.statLabel}>Active</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>₹{avgPrice.toFixed(0)}</Text>
-          <Text style={styles.statLabel}>Avg Price</Text>
-        </View>
-      </View>
-
       <FlatList
         data={filteredItems}
-        renderItem={renderItemCard}
         keyExtractor={(item) => item.name}
-        contentContainerStyle={styles.listContainer}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No items found</Text>
+        renderItem={({ item }) => (
+          <View style={styles.itemItem}>
+            <Text style={styles.itemName}>{item.item_name}</Text>
+            <Text style={styles.itemGroup}>{item.item_group}</Text>
           </View>
-        }
+        )}
       />
+      <Modal
+        visible={isFilterModalVisible}
+        animationType="slide"
+      >
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Filter by Item Group</Text>
+          <FlatList
+            data={uniqueItemGroups}
+            keyExtractor={(item) => item}
+            renderItem={renderFilterItem}
+          />
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setIsFilterModalVisible(false)}
+          >
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -213,6 +153,7 @@ export default function ItemsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 16,
     backgroundColor: theme.colors.background,
   },
   loadingContainer: {
@@ -225,13 +166,16 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: theme.colors.text.secondary,
   },
+  errorText: {
+    color: theme.colors.error[500],
+    fontSize: 16,
+    textAlign: 'center',
+  },
   header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: theme.colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray[200],
+    marginBottom: 16,
   },
   searchContainer: {
     flex: 1,
@@ -250,140 +194,62 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
   },
   addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
     backgroundColor: theme.colors.primary[500],
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 8,
+    padding: 8,
   },
-  statsContainer: {
-    flexDirection: 'row',
-    backgroundColor: theme.colors.white,
-    paddingVertical: 16,
+  filterButton: {
+    padding: 8,
+  },
+  itemItem: {
+    padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.gray[200],
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    color: theme.colors.primary[500],
-  },
-  statLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: theme.colors.text.secondary,
-    marginTop: 4,
-  },
-  listContainer: {
-    padding: 16,
-  },
-  itemCard: {
-    backgroundColor: theme.colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: theme.colors.gray[200],
-  },
-  disabledCard: {
-    opacity: 0.6,
-    borderColor: theme.colors.error[200],
-  },
-  itemHeader: {
-    flexDirection: 'row',
-    marginBottom: 12,
-  },
-  itemImageContainer: {
-    marginRight: 12,
-  },
-  itemImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-  },
-  placeholderImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    backgroundColor: theme.colors.gray[100],
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  itemInfo: {
-    flex: 1,
   },
   itemName: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: theme.colors.text.primary,
-    marginBottom: 4,
   },
-  itemCode: {
+  itemGroup: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: theme.colors.text.secondary,
-    marginBottom: 8,
   },
-  itemTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  tag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.primary[100],
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginRight: 8,
-    marginBottom: 4,
-  },
-  stockTag: {
-    backgroundColor: theme.colors.success[100],
-  },
-  disabledTag: {
-    backgroundColor: theme.colors.error[100],
-  },
-  tagText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: theme.colors.primary[600],
-    marginLeft: 4,
-  },
-  priceContainer: {
-    alignItems: 'flex-end',
-  },
-  price: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    color: theme.colors.success[600],
-  },
-  uom: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: theme.colors.text.secondary,
-    marginTop: 2,
-  },
-  description: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: theme.colors.text.secondary,
-    lineHeight: 20,
-  },
-  emptyContainer: {
+  modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 48,
+    backgroundColor: theme.colors.background,
+    padding: 16,
   },
-  emptyText: {
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
+    color: theme.colors.text.primary,
+    marginBottom: 16,
+  },
+  filterItem: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.gray[200],
+    width: '100%',
+  },
+  filterText: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: theme.colors.text.secondary,
+    color: theme.colors.text.primary,
+  },
+  closeButton: {
+    backgroundColor: theme.colors.primary[500],
+    borderRadius: 8,
+    padding: 16,
+    marginTop: 16,
+  },
+  closeButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.white,
+    textAlign: 'center',
   },
 });

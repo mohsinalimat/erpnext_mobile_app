@@ -1,12 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { theme } from '@/constants/theme';
-import { Video as LucideIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
 
 interface ModuleCardProps {
   title: string;
-  icon: LucideIcon;
+  icon: React.ComponentType<{ size?: number; color?: string }>;
   color: string;
   route: string;
 }

@@ -9,7 +9,23 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSExceptionDomains": {
+            "paperware.jfmart.site": {
+              "NSIncludesSubdomains": true,
+              "NSThirdPartyExceptionRequiresForwardSecrecy": false
+            }
+          }
+        }
+      }
+    },
+    "android": {
+      "permissions": [
+        "android.permission.INTERNET"
+      ],
+      "networkSecurityConfig": "./res/xml/network_security_config.xml"
     },
     "web": {
       "bundler": "metro",

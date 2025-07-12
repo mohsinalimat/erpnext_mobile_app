@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,13 +13,22 @@ import DashboardCard from '@/components/dashboard/DashboardCard';
 import DashboardChart from '@/components/dashboard/DashboardChart';
 import AlertCard from '@/components/dashboard/AlertCard';
 import { fetchDashboardData } from '@/services/api';
-import { Clock, DollarSign, ShoppingCart, Users } from 'lucide-react-native';
+import { Clock, CreditCard, ShoppingCart, Users } from 'lucide-react-native';
+
+interface DashboardData {
+  salesTotal: number;
+  newCustomers: number;
+  openOrders: number;
+  pendingTasks: number;
+  alerts: { title: string; message: string; type: "warning" | "info" | "error"; }[];
+  recentSales: { id: string; customer: string; amount: number; description: string; }[];
+}
 
 export default function DashboardScreen() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [dashboardData, setDashboardData] = useState({
+  const [dashboardData, setDashboardData] = useState<DashboardData>({
     salesTotal: 0,
     newCustomers: 0,
     openOrders: 0,
@@ -30,7 +39,7 @@ export default function DashboardScreen() {
 
   async function loadDashboardData() {
     try {
-      const data = await fetchDashboardData();
+      const data = await fetchDashboardData(user?.email || '');
       setDashboardData(data);
     } catch (error) {
       console.error('Failed to load dashboard data', error);
@@ -44,10 +53,10 @@ export default function DashboardScreen() {
     loadDashboardData();
   }, []);
 
-  const onRefresh = async () => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadDashboardData();
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -81,8 +90,8 @@ export default function DashboardScreen() {
         <View style={styles.cardRow}>
           <DashboardCard
             title="Sales"
-            value={`$${dashboardData.salesTotal.toLocaleString()}`}
-            icon={<DollarSign color={theme.colors.primary[500]} size={24} />}
+            value={`৳${dashboardData.salesTotal.toLocaleString()}`}
+            icon={<CreditCard color={theme.colors.primary[500]} size={24} />}
             color={theme.colors.primary[500]}
             containerStyle={{ flex: 1, marginRight: 8 }}
           />
@@ -135,13 +144,13 @@ export default function DashboardScreen() {
           dashboardData.recentSales.map((sale, index) => (
             <View key={index} style={styles.recentItem}>
               <View style={styles.recentItemIcon}>
-                <DollarSign size={16} color={theme.colors.white} />
+                <CreditCard size={16} color={theme.colors.white} />
               </View>
               <View style={styles.recentItemContent}>
                 <Text style={styles.recentItemTitle}>{sale.customer}</Text>
                 <Text style={styles.recentItemSubtitle}>{sale.description}</Text>
               </View>
-              <Text style={styles.recentItemAmount}>${sale.amount.toLocaleString()}</Text>
+              <Text style={styles.recentItemAmount}>৳{sale.amount.toLocaleString()}</Text>
             </View>
           ))
         )}

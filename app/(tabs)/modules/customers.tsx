@@ -1,134 +1,95 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
-  TextInput,
   ActivityIndicator,
-  RefreshControl,
+  TextInput,
+  TouchableOpacity,
+  Modal,
 } from 'react-native';
 import { theme } from '@/constants/theme';
-import { Search, Plus, Phone, Mail, MapPin, Building } from 'lucide-react-native';
-import api from '@/services/api';
+import { getCustomers } from '@/services/erpnext';
+import { Plus, Search, Filter } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 
 interface Customer {
   name: string;
   customer_name: string;
-  customer_type: string;
-  territory: string;
   customer_group: string;
-  mobile_no?: string;
-  email_id?: string;
-  creation: string;
 }
 
 export default function CustomersScreen() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
-
-  const fetchCustomers = async () => {
-    try {
-      const response = await api.get('/api/resource/Customer', {
-        params: {
-          fields: JSON.stringify([
-            'name',
-            'customer_name',
-            'customer_type',
-            'territory',
-            'customer_group',
-            'mobile_no',
-            'email_id',
-            'creation'
-          ]),
-          limit_page_length: 100,
-          order_by: 'creation desc',
-        },
-      });
-      
-      const customerData = response.data.data || [];
-      setCustomers(customerData);
-      setFilteredCustomers(customerData);
-    } catch (error) {
-      console.error('Error fetching customers:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        const customerList = await getCustomers();
+        setCustomers(customerList);
+        setFilteredCustomers(customerList);
+      } catch (e: any) {
+        setError(e.message || 'Failed to fetch customers');
+        console.error('Failed to fetch customers error:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchCustomers();
   }, []);
 
   useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredCustomers(customers);
-    } else {
-      const filtered = customers.filter(customer =>
-        customer.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        customer.customer_group.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredCustomers(filtered);
-    }
+    const lowercasedQuery = searchQuery.toLowerCase();
+    const filtered = customers.filter(
+      (customer) =>
+        customer.customer_name.toLowerCase().includes(lowercasedQuery) ||
+        customer.name.toLowerCase().includes(lowercasedQuery) ||
+        customer.customer_group.toLowerCase().includes(lowercasedQuery)
+    );
+    setFilteredCustomers(filtered);
   }, [searchQuery, customers]);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchCustomers();
+  const handleFilter = () => {
+    setIsFilterModalVisible(true);
   };
 
-  const renderCustomerItem = ({ item }: { item: Customer }) => (
-    <TouchableOpacity style={styles.customerCard}>
-      <View style={styles.customerHeader}>
-        <View style={styles.customerInfo}>
-          <Text style={styles.customerName}>{item.customer_name}</Text>
-          <Text style={styles.customerId}>{item.name}</Text>
-        </View>
-        <View style={styles.customerTypeContainer}>
-          <Text style={styles.customerType}>{item.customer_type}</Text>
-        </View>
-      </View>
-      
-      <View style={styles.customerDetails}>
-        <View style={styles.detailRow}>
-          <Building size={14} color={theme.colors.text.secondary} />
-          <Text style={styles.detailText}>{item.customer_group}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <MapPin size={14} color={theme.colors.text.secondary} />
-          <Text style={styles.detailText}>{item.territory}</Text>
-        </View>
-        {item.mobile_no && (
-          <View style={styles.detailRow}>
-            <Phone size={14} color={theme.colors.text.secondary} />
-            <Text style={styles.detailText}>{item.mobile_no}</Text>
-          </View>
-        )}
-        {item.email_id && (
-          <View style={styles.detailRow}>
-            <Mail size={14} color={theme.colors.text.secondary} />
-            <Text style={styles.detailText}>{item.email_id}</Text>
-          </View>
-        )}
-      </View>
-      
-      <Text style={styles.creationDate}>
-        Created: {new Date(item.creation).toLocaleDateString()}
-      </Text>
+  const applyFilter = (value: string) => {
+    setIsFilterModalVisible(false);
+    const filtered = customers.filter((customer) => customer.customer_group === value);
+    setFilteredCustomers(filtered);
+  };
+
+  const uniqueCustomerGroups = useMemo(() => {
+    return [...new Set(customers.map((customer) => customer.customer_group))];
+  }, [customers]);
+
+  const renderFilterItem = useCallback(({ item }: { item: string }) => (
+    <TouchableOpacity style={styles.filterItem} onPress={() => applyFilter(item)}>
+      <Text style={styles.filterText}>{item}</Text>
     </TouchableOpacity>
-  );
+  ), [applyFilter]);
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.colors.primary[500]} />
         <Text style={styles.loadingText}>Loading customers...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
       </View>
     );
   }
@@ -146,44 +107,39 @@ export default function CustomersScreen() {
             placeholderTextColor={theme.colors.gray[400]}
           />
         </View>
-        <TouchableOpacity style={styles.addButton}>
-          <Plus size={20} color={theme.colors.white} />
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => router.push('/(tabs)/modules/new-customer')}
+        >
+          <Plus size={24} color={theme.colors.white} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.filterButton} onPress={handleFilter}>
+          <Filter size={24} color={theme.colors.gray[700]} />
         </TouchableOpacity>
       </View>
-
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{customers.length}</Text>
-          <Text style={styles.statLabel}>Total Customers</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>
-            {customers.filter(c => c.customer_type === 'Company').length}
-          </Text>
-          <Text style={styles.statLabel}>Companies</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>
-            {customers.filter(c => c.customer_type === 'Individual').length}
-          </Text>
-          <Text style={styles.statLabel}>Individuals</Text>
-        </View>
-      </View>
-
       <FlatList
         data={filteredCustomers}
-        renderItem={renderCustomerItem}
         keyExtractor={(item) => item.name}
-        contentContainerStyle={styles.listContainer}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No customers found</Text>
+        renderItem={({ item }) => (
+          <View style={styles.customerItem}>
+            <Text style={styles.customerName}>{item.customer_name}</Text>
+            <Text style={styles.customerGroup}>{item.customer_group}</Text>
           </View>
-        }
+        )}
       />
+      <Modal visible={isFilterModalVisible} animationType="slide">
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Filter by Customer Group</Text>
+          <FlatList
+            data={uniqueCustomerGroups}
+            keyExtractor={(item) => item}
+            renderItem={renderFilterItem}
+          />
+          <TouchableOpacity style={styles.closeButton} onPress={() => setIsFilterModalVisible(false)}>
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -191,6 +147,7 @@ export default function CustomersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 16,
     backgroundColor: theme.colors.background,
   },
   loadingContainer: {
@@ -203,13 +160,16 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: theme.colors.text.secondary,
   },
+  errorText: {
+    color: theme.colors.error[500],
+    fontSize: 16,
+    textAlign: 'center',
+  },
   header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: theme.colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray[200],
+    marginBottom: 16,
   },
   searchContainer: {
     flex: 1,
@@ -228,106 +188,62 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
   },
   addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
     backgroundColor: theme.colors.primary[500],
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 8,
+    padding: 8,
   },
-  statsContainer: {
-    flexDirection: 'row',
-    backgroundColor: theme.colors.white,
-    paddingVertical: 16,
+  filterButton: {
+    padding: 8,
+  },
+  customerItem: {
+    padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.gray[200],
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: theme.colors.primary[500],
-  },
-  statLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: theme.colors.text.secondary,
-    marginTop: 4,
-  },
-  listContainer: {
-    padding: 16,
-  },
-  customerCard: {
-    backgroundColor: theme.colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: theme.colors.gray[200],
-  },
-  customerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  customerInfo: {
-    flex: 1,
   },
   customerName: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: theme.colors.text.primary,
-    marginBottom: 4,
   },
-  customerId: {
+  customerGroup: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: theme.colors.text.secondary,
   },
-  customerTypeContainer: {
-    backgroundColor: theme.colors.primary[100],
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  customerType: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: theme.colors.primary[700],
-  },
-  customerDetails: {
-    marginBottom: 12,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  detailText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: theme.colors.text.secondary,
-    marginLeft: 8,
-  },
-  creationDate: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: theme.colors.text.tertiary,
-    textAlign: 'right',
-  },
-  emptyContainer: {
+  modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 48,
+    backgroundColor: theme.colors.background,
+    padding: 16,
   },
-  emptyText: {
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
+    color: theme.colors.text.primary,
+    marginBottom: 16,
+  },
+  filterItem: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.gray[200],
+    width: '100%',
+  },
+  filterText: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: theme.colors.text.secondary,
+    color: theme.colors.text.primary,
+  },
+  closeButton: {
+    backgroundColor: theme.colors.primary[500],
+    borderRadius: 8,
+    padding: 16,
+    marginTop: 16,
+  },
+  closeButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.white,
+    textAlign: 'center',
   },
 });

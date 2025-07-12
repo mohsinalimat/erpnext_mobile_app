@@ -1,0 +1,5 @@
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">paperware.jfmart.site</domain>
+    </domain-config>
+</network-security-config>

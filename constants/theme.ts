@@ -181,13 +181,13 @@ export const theme = {
       900: '#7C2D12',
     },
     text: {
-      primary: '#1F2937', // gray-800
+      primary: '#231f20', // New text color
       secondary: '#6B7280', // gray-500
       tertiary: '#9CA3AF', // gray-400
       disabled: '#D1D5DB', // gray-300
       inverse: '#FFFFFF', // white
     },
-    background: '#F9FAFB', // gray-50
+    background: '#f5ca01', // New background color
     white: '#FFFFFF',
     black: '#000000',
     shadow: '#000000',

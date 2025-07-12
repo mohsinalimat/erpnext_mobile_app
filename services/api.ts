@@ -1,11 +1,5 @@
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
-import { Platform } from 'react-native';
-
-// Your ERPNext server URL
-const ERPNEXT_SERVER_URL = 'https://paperware.jfmart.site';
-const API_KEY = '6341dc2d216041b';
-const API_SECRET = 'c44a3826a1a9335';
+import { API_KEY, API_SECRET, ERPNEXT_SERVER_URL } from './config';
 
 // Create axios instance
 const api = axios.create({
@@ -15,30 +9,9 @@ const api = axios.create({
     'Accept': 'application/json',
     'Authorization': `token ${API_KEY}:${API_SECRET}`,
   },
-  timeout: 10000,
+  timeout: 30000,
 });
 
-// Helper functions for storage (same as in AuthContext)
-const getStoredItem = async (key: string): Promise<string | null> => {
-  try {
-    if (Platform.OS === 'web') {
-      return localStorage.getItem(key);
-    } else {
-      return await SecureStore.getItemAsync(key);
-    }
-  } catch (error) {
-    console.error(`Error getting stored item: ${key}`, error);
-    return null;
-  }
-};
-
-// Add interceptors to set the base URL and auth token
-api.interceptors.request.use(async (config) => {
-  // API key is already set in the default headers
-  config.headers.Authorization = `token ${API_KEY}:${API_SECRET}`;
-  
-  return config;
-});
 
 // Add response interceptor for error handling
 api.interceptors.response.use(
@@ -95,7 +68,7 @@ export const loginToERPNext = async (
 };
 
 // Dashboard data
-export const fetchDashboardData = async () => {
+export const fetchDashboardData = async (userId: string) => {
   try {
     // Fetch dashboard data from multiple ERPNext endpoints
     const [salesResponse, customersResponse, ordersResponse] = await Promise.allSettled([
@@ -103,23 +76,29 @@ export const fetchDashboardData = async () => {
       api.get('/api/resource/Sales Invoice', {
         params: {
           fields: '["grand_total", "posting_date", "customer"]',
-          filters: JSON.stringify([['posting_date', '>=', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]]]),
+          filters: JSON.stringify([
+            ['posting_date', '>=', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]],
+            ['customer', '=', userId]
+          ]),
           limit_page_length: 100,
         },
       }),
       // Get customer count
-      api.get('/api/resource/Customer', {
+      api.get('/api/method/frappe.client.get_count', {
         params: {
-          fields: '["name", "creation"]',
-          filters: JSON.stringify([['creation', '>=', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]]]),
-          limit_page_length: 1000,
+          doctype: 'Customer',
+          filters: JSON.stringify({
+            creation: ['>=', new Date().toISOString().split('T')[0]],
+          }),
         },
       }),
       // Get sales orders
       api.get('/api/resource/Sales Order', {
         params: {
           fields: '["name", "status", "grand_total", "customer"]',
-          filters: JSON.stringify([['status', '!=', 'Completed']]),
+          filters: JSON.stringify({
+            transaction_date: ['>=', new Date().toISOString().split('T')[0]],
+          }),
           limit_page_length: 100,
         },
       }),
@@ -128,10 +107,15 @@ export const fetchDashboardData = async () => {
     // Process sales data
     let salesTotal = 0;
     let recentSales = [];
+    interface Invoice {
+      name: string;
+      customer: string;
+      grand_total: number;
+    }
     if (salesResponse.status === 'fulfilled') {
       const salesData = salesResponse.value.data.data || [];
-      salesTotal = salesData.reduce((sum, invoice) => sum + (invoice.grand_total || 0), 0);
-      recentSales = salesData.slice(0, 3).map(invoice => ({
+      salesTotal = salesData.reduce((sum: number, invoice: Invoice) => sum + (invoice.grand_total || 0), 0);
+      recentSales = salesData.slice(0, 3).map((invoice: Invoice) => ({
         id: invoice.name,
         customer: invoice.customer,
         amount: invoice.grand_total || 0,
@@ -142,13 +126,26 @@ export const fetchDashboardData = async () => {
     // Process customer data
     let newCustomers = 0;
     if (customersResponse.status === 'fulfilled') {
-      newCustomers = customersResponse.value.data.data?.length || 0;
+      newCustomers = customersResponse.value.data.message || 0;
     }
 
     // Process orders data
     let openOrders = 0;
+    let recentSalesOrders = [];
+    interface SalesOrder {
+      name: string;
+      customer: string;
+      grand_total: number;
+    }
     if (ordersResponse.status === 'fulfilled') {
-      openOrders = ordersResponse.value.data.data?.length || 0;
+      const ordersData = ordersResponse.value.data.data || [];
+      openOrders = ordersData.length || 0;
+      recentSalesOrders = ordersData.map((order: SalesOrder) => ({
+        id: order.name,
+        customer: order.customer,
+        amount: order.grand_total || 0,
+        description: `Sales Order ${order.name}`,
+      }));
     }
 
     return {
@@ -157,7 +154,7 @@ export const fetchDashboardData = async () => {
       openOrders,
       pendingTasks: 0, // Would need to fetch from ToDo or Task doctype
       alerts: [], // Would need custom logic based on your business rules
-      recentSales,
+      recentSales: recentSalesOrders,
     };
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
@@ -170,7 +167,7 @@ export const fetchDashboardData = async () => {
       alerts: [{
         title: 'Connection Error',
         message: 'Unable to fetch latest data from ERPNext',
-        type: 'warning',
+        type: "warning" as "warning" | "info" | "error",
       }],
       recentSales: [],
     };

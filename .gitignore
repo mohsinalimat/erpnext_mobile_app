@@ -30,7 +30,10 @@ yarn-error.*
 # local env files
 .env*.local
 .env
-services/config.ts
 
 # typescript
 *.tsbuildinfo
+
+# native folders
+/android
+/ios

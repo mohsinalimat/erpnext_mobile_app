@@ -1,22 +1,31 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { theme } from '@/constants/theme';
-import { Home, Search, User, Plus, FileText, Users, ShoppingBag } from 'lucide-react-native';
+import { getTheme } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
+import { Home, Search, Plus, FileText, Users, ShoppingBag, Settings, User, CheckCircle } from 'lucide-react-native';
 
 const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
+  const { darkMode } = useTheme();
+  const { translations } = useLanguage();
+  const theme = getTheme(darkMode);
+  const styles = getStyles(theme);
   const [modalVisible, setModalVisible] = useState(false);
   const centerIndex = Math.floor(state.routes.length / 2);
 
-  const menuItems = [
-    { label: 'Quotation', icon: <FileText color={theme.colors.primary[500]} />, route: 'quotations' },
-    { label: 'Customer', icon: <Users color={theme.colors.primary[500]} />, route: 'customers' },
-    { label: 'Sales Order', icon: <ShoppingBag color={theme.colors.primary[500]} />, route: 'sales-orders' },
+  const menuItems: { label: string; icon: React.ReactNode; route: string }[] = [
+    { label: translations.quotation, icon: <FileText color={theme.colors.text.secondary} />, route: 'quotation' },
+    { label: translations.sales_order, icon: <ShoppingBag color={theme.colors.text.secondary} />, route: 'sales-order' },
+    { label: translations.customers, icon: <Users color={theme.colors.text.secondary} />, route: 'customers' },
+    { label: translations.items, icon: <ShoppingBag color={theme.colors.text.secondary} />, route: 'items' },
+    { label: translations.tasks, icon: <FileText color={theme.colors.text.secondary} />, route: 'tasks' },
+    { label: translations.check_in_out, icon: <CheckCircle color={theme.colors.text.secondary} />, route: 'check-in-out' },
   ];
 
   const handleMenuItemPress = (route: string) => {
     setModalVisible(false);
-    navigation.navigate('modules', { screen: route });
+    navigation.navigate(route);
   };
 
   return (
@@ -51,6 +60,12 @@ const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => 
 
       <View style={styles.container}>
         {state.routes.map((route, index) => {
+          // Filter to show only main tabs in the tab bar
+          const mainTabs = ['index', 'profile'];
+          if (!mainTabs.includes(route.name) && index !== centerIndex) {
+            return null;
+          }
+
           const { options } = descriptors[route.key];
           const label =
             options.tabBarLabel !== undefined
@@ -83,20 +98,24 @@ const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => 
           const getIcon = () => {
             switch (route.name) {
               case 'index':
-                return <Home color={isFocused ? theme.colors.primary[500] : theme.colors.gray[500]} />;
-              case 'search':
-                return <Search color={isFocused ? theme.colors.primary[500] : theme.colors.gray[500]} />;
-              case 'reports':
-                return <FileText color={isFocused ? theme.colors.primary[500] : theme.colors.gray[500]} />;
-              case 'settings':
-                return <User color={isFocused ? theme.colors.primary[500] : theme.colors.gray[500]} />;
+                return <Home color={isFocused ? theme.colors.primary[500] : theme.colors.text.secondary} />;
+              case 'profile':
+                return <User color={isFocused ? theme.colors.primary[500] : theme.colors.text.secondary} />;
               default:
                 return null;
             }
           };
 
           if (index === centerIndex) {
-            return <View key={route.key} style={styles.tabButton} />;
+            return (
+              <TouchableOpacity
+                key={route.key}
+                onPress={() => setModalVisible(true)}
+                style={styles.centerButton}
+              >
+                <Plus color={theme.colors.white} />
+              </TouchableOpacity>
+            );
           }
 
           return (
@@ -110,24 +129,18 @@ const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => 
               style={styles.tabButton}
             >
               {getIcon()}
-              <Text style={{ color: isFocused ? theme.colors.primary[500] : theme.colors.gray[500], marginTop: 4 }}>
+              <Text style={{ color: isFocused ? theme.colors.primary[500] : theme.colors.text.secondary, marginTop: 4 }}>
                 {label.toString()}
               </Text>
             </TouchableOpacity>
           );
         })}
-        <TouchableOpacity
-          onPress={() => setModalVisible(true)}
-          style={styles.centerButton}
-        >
-          <Plus color={theme.colors.white} />
-        </TouchableOpacity>
       </View>
     </>
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   container: {
     flexDirection: 'row',
     height: 80,

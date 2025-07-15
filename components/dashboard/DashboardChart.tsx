@@ -1,33 +1,62 @@
-import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
 import { theme } from '@/constants/theme';
+import { getMonthlySales } from '@/services/api';
+
+interface ChartData {
+  month: string;
+  value: number;
+}
 
 const DashboardChart: React.FC = () => {
-  // Mock data for the chart
-  const data = [
-    { month: 'Jan', value: 12000 },
-    { month: 'Feb', value: 19000 },
-    { month: 'Mar', value: 15000 },
-    { month: 'Apr', value: 22000 },
-    { month: 'May', value: 18000 },
-    { month: 'Jun', value: 25000 },
-  ];
+  const [data, setData] = useState<ChartData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Get the maximum value for scaling
-  const maxValue = Math.max(...data.map(item => item.value));
-  
-  // Chart dimensions
-  const chartWidth = Dimensions.get('window').width - 64; // Full width minus padding
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const result = await getMonthlySales();
+        setData(result);
+        setError(null);
+      } catch (err) {
+        setError('Failed to fetch sales data.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={theme.colors.primary[500]} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
+  const maxValue = Math.max(...data.map(item => item.value), 0);
+  const chartWidth = Dimensions.get('window').width - 64;
   const chartHeight = 200;
-  const barWidth = chartWidth / data.length * 0.6;
-  const barSpacing = chartWidth / data.length * 0.4;
+  const barWidth = data.length > 0 ? chartWidth / data.length * 0.6 : 0;
+  const barSpacing = data.length > 0 ? chartWidth / data.length * 0.4 : 0;
 
   return (
     <View style={styles.container}>
       <View style={styles.chartContainer}>
         {data.map((item, index) => {
-          // Calculate bar height based on value
-          const barHeight = (item.value / maxValue) * chartHeight;
+          const barHeight = maxValue > 0 ? (item.value / maxValue) * chartHeight : 0;
           
           return (
             <View key={index} style={styles.barContainer}>
@@ -68,6 +97,15 @@ const DashboardChart: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
+  },
+  centered: {
+    height: 240,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: theme.colors.error[500],
+    fontFamily: 'Inter-Medium',
   },
   chartContainer: {
     height: 240,

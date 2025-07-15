@@ -75,7 +75,7 @@ export default function DashboardScreen() {
       }
     >
       <View style={styles.headerSection}>
-        <Text style={styles.welcomeText}>Good morning, {user?.name || 'User'}</Text>
+        <Text style={styles.welcomeText}>Hello, {user?.name || 'User'}</Text>
         <Text style={styles.dateText}>
           {new Date().toLocaleDateString('en-US', {
             weekday: 'long',

@@ -38,13 +38,25 @@ export const loginToERPNext = async (
     
     // Get user profile information
     const profileResponse = await api.get(`/api/resource/User/${email}`);
-    
+    const employeeResponse = await api.get(
+      `/api/resource/Employee?filters=[["user_id","=","${email}"]]&fields=["gender","cell_number","passport_number","date_of_joining"]`
+    );
+
+    const employeeData = employeeResponse.data.data[0] || {};
+
     return {
       user: {
         id: email,
-        name: profileResponse.data.data.full_name || profileResponse.data.data.first_name || email,
+        name:
+          profileResponse.data.data.full_name ||
+          profileResponse.data.data.first_name ||
+          email,
         email: email,
         role: profileResponse.data.data.role_profile_name || 'User',
+        gender: employeeData.gender || 'N/A',
+        mobile: employeeData.cell_number || 'N/A',
+        passport_nid: employeeData.passport_number || 'N/A',
+        date_of_joining: employeeData.date_of_joining || 'N/A',
       },
       token: `${API_KEY}:${API_SECRET}`,
     };
@@ -75,10 +87,9 @@ export const fetchDashboardData = async (userId: string) => {
       // Get sales data
       api.get('/api/resource/Sales Invoice', {
         params: {
-          fields: '["grand_total", "posting_date", "customer"]',
+          fields: '["grand_total", "posting_date"]',
           filters: JSON.stringify([
-            ['posting_date', '>=', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]],
-            ['customer', '=', userId]
+            ['posting_date', '>=', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]]
           ]),
           limit_page_length: 100,
         },
@@ -95,7 +106,7 @@ export const fetchDashboardData = async (userId: string) => {
       // Get sales orders
       api.get('/api/resource/Sales Order', {
         params: {
-          fields: '["name", "status", "grand_total", "customer"]',
+          fields: '["name", "status", "grand_total"]',
           filters: JSON.stringify({
             transaction_date: ['>=', new Date().toISOString().split('T')[0]],
           }),
@@ -109,7 +120,6 @@ export const fetchDashboardData = async (userId: string) => {
     let recentSales = [];
     interface Invoice {
       name: string;
-      customer: string;
       grand_total: number;
     }
     if (salesResponse.status === 'fulfilled') {
@@ -117,7 +127,6 @@ export const fetchDashboardData = async (userId: string) => {
       salesTotal = salesData.reduce((sum: number, invoice: Invoice) => sum + (invoice.grand_total || 0), 0);
       recentSales = salesData.slice(0, 3).map((invoice: Invoice) => ({
         id: invoice.name,
-        customer: invoice.customer,
         amount: invoice.grand_total || 0,
         description: `Invoice ${invoice.name}`,
       }));
@@ -134,7 +143,6 @@ export const fetchDashboardData = async (userId: string) => {
     let recentSalesOrders = [];
     interface SalesOrder {
       name: string;
-      customer: string;
       grand_total: number;
     }
     if (ordersResponse.status === 'fulfilled') {
@@ -142,7 +150,6 @@ export const fetchDashboardData = async (userId: string) => {
       openOrders = ordersData.length || 0;
       recentSalesOrders = ordersData.map((order: SalesOrder) => ({
         id: order.name,
-        customer: order.customer,
         amount: order.grand_total || 0,
         description: `Sales Order ${order.name}`,
       }));
@@ -216,5 +223,85 @@ export const getServerInfo = async () => {
     return null;
   }
 };
+
+// Get monthly sales data for the last 6 months
+export const getMonthlySales = async () => {
+  try {
+    const today = new Date();
+    const sixMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+
+    const response = await api.get('/api/resource/Sales Order', {
+      params: {
+        fields: '["transaction_date", "grand_total"]',
+        filters: JSON.stringify([
+          ['transaction_date', '>=', sixMonthsAgo.toISOString().split('T')[0]],
+          ['docstatus', '=', 1],
+        ]),
+        limit_page_length: 1000, // Adjust as needed
+      },
+    });
+
+    const salesData = response.data.data || [];
+    const monthlySales: { [key: string]: number } = {};
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    // Initialize last 6 months
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const monthKey = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+      monthlySales[monthKey] = 0;
+    }
+    
+    salesData.forEach((order: { transaction_date: string; grand_total: number }) => {
+      const date = new Date(order.transaction_date);
+      const monthKey = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+      if (monthlySales.hasOwnProperty(monthKey)) {
+        monthlySales[monthKey] += order.grand_total;
+      }
+    });
+
+    return Object.keys(monthlySales).map(key => ({
+      month: key.split(' ')[0],
+      value: monthlySales[key],
+    }));
+
+  } catch (error) {
+    console.error('Error fetching monthly sales:', error);
+    throw error;
+  }
+};
+
+// Get check-in/out data for a specific user
+export const getCheckIns = async (employeeId: string) => {
+  try {
+    const response = await api.get('/api/resource/Employee Checkin', {
+      params: {
+        filters: JSON.stringify([['employee', '=', employeeId]]),
+        fields: '["name", "log_type", "creation"]',
+        order_by: 'creation desc',
+        limit_page_length: 50,
+      },
+    });
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching check-ins:', error);
+    throw error;
+  }
+};
+
+// Create a new check-in/out record
+export const createCheckIn = async (data: { employee: string; log_type: 'IN' | 'OUT' }) => {
+  try {
+    const response = await api.post('/api/resource/Employee Checkin', {
+      ...data,
+      timestamp: new Date().toISOString(),
+    });
+    return response.data.data;
+  } catch (error) {
+    console.error('Error creating check-in:', error);
+    throw error;
+  }
+};
+
 
 export default api;

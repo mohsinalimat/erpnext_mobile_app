@@ -8,6 +8,10 @@ type User = {
   name: string;
   email: string;
   role: string;
+  gender: string;
+  mobile: string;
+  passport_nid: string;
+  date_of_joining: string;
 };
 
 type AuthContextType = {
@@ -76,6 +80,10 @@ const mockUser = {
   name: 'John Doe',
   email: 'john@example.com',
   role: 'System Manager',
+  gender: 'Male',
+  mobile: '+1234567890',
+  passport_nid: 'AB1234567',
+  date_of_joining: '2023-01-15',
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -88,22 +96,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        // In development, automatically authenticate with mock user
-        if (__DEV__) {
-          setUser(mockUser);
+        const storedUser = await getStoredItem('user');
+        const storedToken = await getStoredItem('token');
+        const storedServerUrl = await getStoredItem('serverUrl');
+        
+        if (storedUser && storedToken && storedServerUrl) {
+          setUser(JSON.parse(storedUser));
           setIsAuthenticated(true);
-          await setStoredItem('user', JSON.stringify(mockUser));
-          await setStoredItem('token', '6341dc2d216041b:c44a3826a1a9335');
-          await setStoredItem('serverUrl', 'https://demo.erpnext.com');
-        } else {
-          const storedUser = await getStoredItem('user');
-          const storedToken = await getStoredItem('token');
-          const storedServerUrl = await getStoredItem('serverUrl');
-          
-          if (storedUser && storedToken && storedServerUrl) {
-            setUser(JSON.parse(storedUser));
-            setIsAuthenticated(true);
-          }
         }
       } catch (error) {
         console.error('Failed to initialize auth', error);

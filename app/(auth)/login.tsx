@@ -14,6 +14,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { theme } from '@/constants/theme';
 import { Eye, EyeOff, Server } from 'lucide-react-native';
+import { Link } from 'expo-router';
 
 export default function LoginScreen() {
   const [serverUrl, setServerUrl] = useState('https://paperware.jfmart.site');
@@ -78,11 +79,11 @@ export default function LoginScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.logoContainer}>
           <Image
-            source={{ uri: 'https://erpnext.com/files/erpnext-logo.png' }}
+            source={require('@/assets/images/logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.title}>ERPNext Mobile</Text>
+          <Text style={styles.title}>Prime ERP Mobile</Text>
           <Text style={styles.subtitle}>Access your business anywhere</Text>
         </View>
 
@@ -151,6 +152,12 @@ export default function LoginScreen() {
               <Text style={styles.loginButtonText}>Login</Text>
             )}
           </TouchableOpacity>
+
+          <Link href="/(auth)/forgot-password" asChild>
+            <TouchableOpacity style={styles.forgotPasswordButton}>
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            </TouchableOpacity>
+          </Link>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -160,33 +167,33 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: '#f5ca01',
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 40,
+    paddingHorizontal: 32,
+    paddingVertical: 60,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 48,
   },
   logo: {
-    width: 100,
-    height: 100,
-    marginBottom: 16,
+    width: 120,
+    height: 120,
+    marginBottom: 24,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontFamily: 'Inter-Bold',
-    color: theme.colors.text.primary,
+    color: '#1A202C', // Darker text
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'Inter-Regular',
-    color: theme.colors.text.secondary,
+    color: '#4A5568', // Softer secondary text
   },
   formContainer: {
     width: '100%',
@@ -194,45 +201,66 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.gray[100],
-    borderRadius: 8,
-    marginBottom: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    marginBottom: 20,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: theme.colors.gray[200],
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
   },
   input: {
     flex: 1,
     height: 56,
-    paddingLeft: 12,
+    paddingLeft: 16,
     fontFamily: 'Inter-Regular',
-    color: theme.colors.text.primary,
+    fontSize: 16,
+    color: '#1A202C',
   },
   inputIcon: {
     fontSize: 20,
-    color: theme.colors.gray[500],
+    color: '#A0AEC0',
   },
   eyeIcon: {
     padding: 8,
   },
   errorText: {
-    color: theme.colors.error[500],
+    color: '#E53E3E',
     fontSize: 14,
-    marginTop: -8,
+    marginTop: -12,
     marginBottom: 16,
+    paddingLeft: 4,
     fontFamily: 'Inter-Regular',
   },
   loginButton: {
-    backgroundColor: theme.colors.primary[500],
-    borderRadius: 8,
+    backgroundColor: '#4299E1', // A nice blue
+    borderRadius: 12,
     height: 56,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
   loginButtonText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'Inter-SemiBold',
+  },
+  forgotPasswordButton: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  forgotPasswordText: {
+    color: '#4A5568',
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
   },
 });

@@ -9,36 +9,21 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { theme } from '@/constants/theme';
+import { getTheme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { User, Bell, Globe, Shield, Moon, RefreshCw, Smartphone, LogOut, ChevronRight, CircleHelp as HelpCircle, FileText, BookOpen } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
   const { darkMode, toggleDarkMode } = useTheme();
+  const { language, setLanguage, translations } = useLanguage();
+  const theme = getTheme(darkMode);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [syncInterval, setSyncInterval] = useState('15 minutes');
   const [offlineMode, setOfflineMode] = useState(false);
-
-  const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Sign Out',
-          onPress: signOut,
-          style: 'destructive',
-        },
-      ],
-      { cancelable: true }
-    );
-  };
 
   const handleSyncIntervalPress = () => {
     const intervals = ['5 minutes', '15 minutes', '30 minutes', '1 hour', 'Manual only'];
@@ -61,6 +46,20 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleLanguageChange = () => {
+    const languages = [{ code: 'en', name: 'English' }, { code: 'bn', name: 'বাংলা' }];
+    Alert.alert(
+      'Select Language',
+      '',
+      languages.map(lang => ({
+        text: lang.name,
+        onPress: () => setLanguage(lang.code),
+      }))
+    );
+  };
+
+  const styles = getStyles(theme);
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.userInfoContainer}>
@@ -75,18 +74,18 @@ export default function SettingsScreen() {
             <Text style={styles.userEmail}>{user?.email || 'user@example.com'}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.editProfileButton}>
-          <Text style={styles.editProfileText}>Edit</Text>
-        </TouchableOpacity>
+<TouchableOpacity style={styles.editProfileButton} onPress={() => router.push('/(tabs)/profile')}>
+    <Text style={styles.editProfileText}>{translations.edit}</Text>
+</TouchableOpacity>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>App Preferences</Text>
+        <Text style={styles.sectionTitle}>{translations.app_preferences}</Text>
 
         <View style={styles.settingItem}>
           <View style={styles.settingItemLeft}>
             <Bell size={20} color={theme.colors.text.secondary} style={styles.settingIcon} />
-            <Text style={styles.settingText}>Push Notifications</Text>
+            <Text style={styles.settingText}>{translations.push_notifications}</Text>
           </View>
           <Switch
             value={pushNotifications}
@@ -102,7 +101,7 @@ export default function SettingsScreen() {
         <View style={styles.settingItem}>
           <View style={styles.settingItemLeft}>
             <Moon size={20} color={theme.colors.text.secondary} style={styles.settingIcon} />
-            <Text style={styles.settingText}>Dark Mode</Text>
+            <Text style={styles.settingText}>{translations.dark_mode}</Text>
           </View>
           <Switch
             value={darkMode}
@@ -118,7 +117,7 @@ export default function SettingsScreen() {
         <TouchableOpacity style={styles.settingItem} onPress={handleSyncIntervalPress}>
           <View style={styles.settingItemLeft}>
             <RefreshCw size={20} color={theme.colors.text.secondary} style={styles.settingIcon} />
-            <Text style={styles.settingText}>Sync Interval</Text>
+            <Text style={styles.settingText}>{translations.sync_interval}</Text>
           </View>
           <View style={styles.settingItemRight}>
             <Text style={styles.settingValueText}>{syncInterval}</Text>
@@ -129,7 +128,7 @@ export default function SettingsScreen() {
         <View style={styles.settingItem}>
           <View style={styles.settingItemLeft}>
             <Smartphone size={20} color={theme.colors.text.secondary} style={styles.settingIcon} />
-            <Text style={styles.settingText}>Offline Mode</Text>
+            <Text style={styles.settingText}>{translations.offline_mode}</Text>
           </View>
           <Switch
             value={offlineMode}
@@ -144,12 +143,12 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account & Security</Text>
+        <Text style={styles.sectionTitle}>{translations.account_security}</Text>
 
         <TouchableOpacity style={styles.settingItem}>
           <View style={styles.settingItemLeft}>
             <User size={20} color={theme.colors.text.secondary} style={styles.settingIcon} />
-            <Text style={styles.settingText}>Account Information</Text>
+            <Text style={styles.settingText}>{translations.account_information}</Text>
           </View>
           <ChevronRight size={18} color={theme.colors.gray[400]} />
         </TouchableOpacity>
@@ -157,30 +156,30 @@ export default function SettingsScreen() {
         <TouchableOpacity style={styles.settingItem}>
           <View style={styles.settingItemLeft}>
             <Shield size={20} color={theme.colors.text.secondary} style={styles.settingIcon} />
-            <Text style={styles.settingText}>Security</Text>
+            <Text style={styles.settingText}>{translations.security}</Text>
           </View>
           <ChevronRight size={18} color={theme.colors.gray[400]} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.settingItem}>
+        <TouchableOpacity style={styles.settingItem} onPress={handleLanguageChange}>
           <View style={styles.settingItemLeft}>
             <Globe size={20} color={theme.colors.text.secondary} style={styles.settingIcon} />
-            <Text style={styles.settingText}>Language</Text>
+            <Text style={styles.settingText}>{translations.language}</Text>
           </View>
           <View style={styles.settingItemRight}>
-            <Text style={styles.settingValueText}>English</Text>
+            <Text style={styles.settingValueText}>{language === 'en' ? 'English' : 'বাংলা'}</Text>
             <ChevronRight size={18} color={theme.colors.gray[400]} />
           </View>
         </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Help & Support</Text>
+        <Text style={styles.sectionTitle}>{translations.help_support}</Text>
 
         <TouchableOpacity style={styles.settingItem}>
           <View style={styles.settingItemLeft}>
             <BookOpen size={20} color={theme.colors.text.secondary} style={styles.settingIcon} />
-            <Text style={styles.settingText}>Documentation</Text>
+            <Text style={styles.settingText}>{translations.documentation}</Text>
           </View>
           <ChevronRight size={18} color={theme.colors.gray[400]} />
         </TouchableOpacity>
@@ -188,7 +187,7 @@ export default function SettingsScreen() {
         <TouchableOpacity style={styles.settingItem}>
           <View style={styles.settingItemLeft}>
             <HelpCircle size={20} color={theme.colors.text.secondary} style={styles.settingIcon} />
-            <Text style={styles.settingText}>Help Center</Text>
+            <Text style={styles.settingText}>{translations.help_center}</Text>
           </View>
           <ChevronRight size={18} color={theme.colors.gray[400]} />
         </TouchableOpacity>
@@ -196,23 +195,18 @@ export default function SettingsScreen() {
         <TouchableOpacity style={styles.settingItem}>
           <View style={styles.settingItemLeft}>
             <FileText size={20} color={theme.colors.text.secondary} style={styles.settingIcon} />
-            <Text style={styles.settingText}>Terms & Privacy</Text>
+            <Text style={styles.settingText}>{translations.terms_privacy}</Text>
           </View>
           <ChevronRight size={18} color={theme.colors.gray[400]} />
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-        <LogOut size={20} color={theme.colors.error[500]} />
-        <Text style={styles.signOutText}>Sign Out</Text>
-      </TouchableOpacity>
-      
-      <Text style={styles.versionText}>Version 1.0.0</Text>
+      <Text style={styles.versionText}>{translations.version} 1.0.0</Text>
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -324,23 +318,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: theme.colors.text.secondary,
     marginRight: 8,
-  },
-  signOutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: theme.colors.error[100],
-  },
-  signOutText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: theme.colors.error[500],
-    marginLeft: 12,
   },
   versionText: {
     textAlign: 'center',

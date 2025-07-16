@@ -183,32 +183,6 @@ const colors = {
   black: '#000000',
 };
 
-const lightTheme = {
-  ...colors,
-  text: {
-    primary: '#231f20',
-    secondary: colors.gray[500],
-    tertiary: colors.gray[400],
-    disabled: colors.gray[300],
-    inverse: colors.white,
-  },
-  background: '#f5ca01',
-  shadow: colors.black,
-};
-
-const darkTheme = {
-  ...colors,
-  text: {
-    primary: colors.gray[100],
-    secondary: colors.gray[400],
-    tertiary: colors.gray[500],
-    disabled: colors.gray[700],
-    inverse: colors.black,
-  },
-  background: colors.gray[900],
-  shadow: colors.white,
-};
-
 const sharedTheme = {
   spacing: {
     xs: 4,
@@ -266,9 +240,18 @@ const sharedTheme = {
   },
 };
 
-export const getTheme = (darkMode: boolean) => ({
-  colors: darkMode ? darkTheme : lightTheme,
+export const theme = {
+  colors: {
+    ...colors,
+    text: {
+      primary: colors.black,
+      secondary: colors.gray[500],
+      tertiary: colors.gray[400],
+      disabled: colors.gray[300],
+      inverse: colors.white,
+    },
+    background: colors.white,
+    shadow: colors.black,
+  },
   ...sharedTheme,
-});
-
-export const theme = getTheme(false); // Default export for components that don't use the context
+};

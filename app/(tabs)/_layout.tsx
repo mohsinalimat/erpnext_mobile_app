@@ -1,6 +1,5 @@
 import { Tabs, useRouter } from 'expo-router';
-import { getTheme } from '@/constants/theme';
-import { useTheme, ThemeProvider } from '@/context/ThemeContext';
+import { theme } from '@/constants/theme';
 import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
 import CustomTabBar from '@/components/navigation/CustomTabBar';
 import { TouchableOpacity } from 'react-native';
@@ -8,9 +7,7 @@ import { Settings } from 'lucide-react-native';
 
 function TabLayoutContent() {
   const router = useRouter();
-  const { darkMode } = useTheme();
   const { translations } = useLanguage();
-  const theme = getTheme(darkMode);
 
   return (
     <Tabs
@@ -97,10 +94,8 @@ function TabLayoutContent() {
 
 export default function TabLayout() {
   return (
-    <ThemeProvider>
       <LanguageProvider>
         <TabLayoutContent />
       </LanguageProvider>
-    </ThemeProvider>
   );
 }

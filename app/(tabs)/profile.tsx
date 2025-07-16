@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
-import { getTheme } from '@/constants/theme';
-import { useTheme } from '@/context/ThemeContext';
+import { theme } from '@/constants/theme';
 import { useLanguage } from '@/context/LanguageContext';
 import {
   LogOut,
@@ -16,10 +15,7 @@ import {
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
-  const { darkMode } = useTheme();
   const { translations } = useLanguage();
-  const theme = getTheme(darkMode);
-  const styles = getStyles(theme);
 
   if (!user) {
     return (
@@ -75,7 +71,7 @@ export default function ProfileScreen() {
   );
 }
 
-const getStyles = (theme: any) => StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,

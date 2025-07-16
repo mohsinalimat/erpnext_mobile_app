@@ -9,18 +9,15 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { getTheme } from '@/constants/theme';
+import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
-import { useTheme } from '@/context/ThemeContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { User, Bell, Globe, Shield, Moon, RefreshCw, Smartphone, LogOut, ChevronRight, CircleHelp as HelpCircle, FileText, BookOpen } from 'lucide-react-native';
 import { router } from 'expo-router';
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
-  const { darkMode, toggleDarkMode } = useTheme();
   const { language, setLanguage, translations } = useLanguage();
-  const theme = getTheme(darkMode);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [syncInterval, setSyncInterval] = useState('15 minutes');
   const [offlineMode, setOfflineMode] = useState(false);
@@ -58,8 +55,6 @@ export default function SettingsScreen() {
     );
   };
 
-  const styles = getStyles(theme);
-
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.userInfoContainer}>
@@ -90,22 +85,6 @@ export default function SettingsScreen() {
           <Switch
             value={pushNotifications}
             onValueChange={setPushNotifications}
-            trackColor={{
-              false: theme.colors.gray[300],
-              true: theme.colors.primary[400],
-            }}
-            thumbColor={theme.colors.white}
-          />
-        </View>
-
-        <View style={styles.settingItem}>
-          <View style={styles.settingItemLeft}>
-            <Moon size={20} color={theme.colors.text.secondary} style={styles.settingIcon} />
-            <Text style={styles.settingText}>{translations.dark_mode}</Text>
-          </View>
-          <Switch
-            value={darkMode}
-            onValueChange={toggleDarkMode}
             trackColor={{
               false: theme.colors.gray[300],
               true: theme.colors.primary[400],
@@ -206,7 +185,7 @@ export default function SettingsScreen() {
   );
 }
 
-const getStyles = (theme: any) => StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,

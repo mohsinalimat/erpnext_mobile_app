@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { getTheme } from '@/constants/theme';
-import { useTheme } from '@/context/ThemeContext';
+import { theme } from '@/constants/theme';
 import { useLanguage } from '@/context/LanguageContext';
 import { Home, Search, Plus, FileText, Users, ShoppingBag, Settings, User, CheckCircle } from 'lucide-react-native';
 
 const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
-  const { darkMode } = useTheme();
   const { translations } = useLanguage();
-  const theme = getTheme(darkMode);
-  const styles = getStyles(theme);
   const [modalVisible, setModalVisible] = useState(false);
   const centerIndex = Math.floor(state.routes.length / 2);
 
@@ -140,7 +136,7 @@ const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => 
   );
 };
 
-const getStyles = (theme: any) => StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     height: 80,

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator, StyleSheet, Button } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, StyleSheet, Button, Pressable } from 'react-native';
 import { getSalesOrders } from '@/services/erpnext';
 import { theme } from '@/constants/theme';
 import { router } from 'expo-router';
@@ -48,13 +48,15 @@ export default function SalesOrderScreen() {
   }
 
   const renderItem = ({ item }: { item: any }) => (
-    <View style={styles.itemContainer}>
-      <Text style={styles.itemTitle}>Sales Order: {item.name}</Text>
-      <Text>Customer: {item.customer}</Text>
-      <Text>Date: {item.transaction_date}</Text>
-      <Text>Status: {item.status}</Text>
-      <Text>Total: ৳{item.grand_total}</Text>
-    </View>
+    <Pressable onPress={() => router.push(`/sales-order/${item.name}`)}>
+      <View style={styles.itemContainer}>
+        <Text style={styles.itemTitle}>Sales Order: {item.name}</Text>
+        <Text>Customer: {item.customer}</Text>
+        <Text>Date: {item.transaction_date}</Text>
+        <Text>Status: {item.status}</Text>
+        <Text>Total: ৳{item.grand_total}</Text>
+      </View>
+    </Pressable>
   );
 
   return (

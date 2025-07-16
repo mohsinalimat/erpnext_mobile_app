@@ -31,6 +31,16 @@ export const createCustomer = async (customerData: any) => {
   }
 };
 
+export const getCustomerByName = async (name: string) => {
+  try {
+    const response = await api.get(`/api/resource/Customer/${name}`);
+    return response.data.data;
+  } catch (error: any) {
+    console.error(`Failed to fetch customer ${name}:`, error.response?.data || error.message);
+    throw error;
+  }
+};
+
 
 // =================================================================
 // Item
@@ -59,6 +69,16 @@ export const createItem = async (itemData: any) => {
     return response.data.data;
   } catch (error: any) {
     console.error('Failed to create item:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const getItemByName = async (name: string) => {
+  try {
+    const response = await api.get(`/api/resource/Item/${name}`);
+    return response.data.data;
+  } catch (error: any) {
+    console.error(`Failed to fetch item ${name}:`, error.response?.data || error.message);
     throw error;
   }
 };
@@ -95,6 +115,16 @@ export const createQuotation = async (quotationData: any) => {
   }
 };
 
+export const getQuotationByName = async (name: string) => {
+  try {
+    const response = await api.get(`/api/resource/Quotation/${name}`);
+    return response.data.data;
+  } catch (error: any) {
+    console.error(`Failed to fetch quotation ${name}:`, error.response?.data || error.message);
+    throw error;
+  }
+};
+
 
 // =================================================================
 // Sales Order
@@ -123,6 +153,16 @@ export const createSalesOrder = async (salesOrderData: any) => {
     return response.data.data;
   } catch (error: any) {
     console.error('Failed to create sales order:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const getSalesOrderByName = async (name: string) => {
+  try {
+    const response = await api.get(`/api/resource/Sales Order/${name}`);
+    return response.data.data;
+  } catch (error: any) {
+    console.error(`Failed to fetch sales order ${name}:`, error.response?.data || error.message);
     throw error;
   }
 };

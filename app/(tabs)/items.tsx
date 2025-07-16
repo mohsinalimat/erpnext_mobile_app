@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator, StyleSheet, Button } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, StyleSheet, Button, Pressable } from 'react-native';
 import { getItems } from '@/services/erpnext';
 import { theme } from '@/constants/theme';
 import { router } from 'expo-router';
@@ -48,10 +48,12 @@ export default function ItemsScreen() {
   }
 
   const renderItem = ({ item }: { item: any }) => (
-    <View style={styles.itemContainer}>
-      <Text style={styles.itemTitle}>{item.item_name || item.name}</Text>
-      <Text>Group: {item.item_group}</Text>
-    </View>
+    <Pressable onPress={() => router.push(`/item/${item.name}`)}>
+      <View style={styles.itemContainer}>
+        <Text style={styles.itemTitle}>{item.item_name || item.name}</Text>
+        <Text>Group: {item.item_group}</Text>
+      </View>
+    </Pressable>
   );
 
   return (

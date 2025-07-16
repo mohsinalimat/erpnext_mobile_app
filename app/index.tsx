@@ -1,18 +1,15 @@
 import { useEffect } from 'react';
 import { Redirect } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { theme } from '@/constants/theme';
+import LoadingAnimation from '@/components/common/LoadingAnimation';
 
 export default function Index() {
   const { isAuthenticated, isInitialized } = useAuth();
 
   if (!isInitialized) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color={theme.colors.primary[500]} />
-      </View>
-    );
+    return <LoadingAnimation />;
   }
 
   if (isAuthenticated) {

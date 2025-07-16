@@ -35,6 +35,10 @@ function RootLayoutNav() {
       <Stack.Screen name="index" />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="quotation/[id]" options={{ headerShown: true, title: 'Quotation Details' }} />
+      <Stack.Screen name="customer/[id]" options={{ headerShown: true, title: 'Customer Details' }} />
+      <Stack.Screen name="item/[id]" options={{ headerShown: true, title: 'Item Details' }} />
+      <Stack.Screen name="sales-order/[id]" options={{ headerShown: true, title: 'Sales Order Details' }} />
       <Stack.Screen name="+not-found" />
     </Stack>
   );

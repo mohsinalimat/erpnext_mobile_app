@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, StyleSheet, Button, Pressable } from 'react-native';
 import { getItems } from '@/services/erpnext';
-import { theme } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 import { router } from 'expo-router';
 
 export default function ItemsScreen() {
+  const { theme } = useTheme();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,9 +50,9 @@ export default function ItemsScreen() {
 
   const renderItem = ({ item }: { item: any }) => (
     <Pressable onPress={() => router.push(`/item/${item.name}`)}>
-      <View style={styles.itemContainer}>
-        <Text style={styles.itemTitle}>{item.item_name || item.name}</Text>
-        <Text>Group: {item.item_group}</Text>
+      <View style={[styles.itemContainer, { backgroundColor: theme.colors.white }]}>
+        <Text style={[styles.itemTitle, { color: theme.colors.text.primary }]}>{item.item_name || item.name}</Text>
+        <Text style={{ color: theme.colors.text.secondary }}>Group: {item.item_group}</Text>
       </View>
     </Pressable>
   );
@@ -76,21 +77,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: theme.colors.background,
   },
   errorText: {
-    color: theme.colors.error[500],
+    color: 'red',
   },
   listContainer: {
     padding: 16,
-    backgroundColor: theme.colors.background,
   },
   itemContainer: {
-    backgroundColor: theme.colors.white,
     padding: 16,
     marginBottom: 12,
     borderRadius: 8,
-    shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,

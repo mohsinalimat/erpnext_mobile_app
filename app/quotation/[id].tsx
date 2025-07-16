@@ -58,7 +58,20 @@ export default function QuotationDetailScreen() {
         <Text>Customer: {quotation.customer}</Text>
         <Text>Date: {quotation.transaction_date}</Text>
         <Text>Status: {quotation.status}</Text>
-        <Text>Total: ৳{quotation.grand_total}</Text>
+        <Text>Grand Total: ৳{quotation.grand_total}</Text>
+        <Text>Net Total: ৳{quotation.net_total}</Text>
+        <Text>Total Taxes and Charges: ৳{quotation.total_taxes_and_charges}</Text>
+      </View>
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Items</Text>
+        {quotation.items.map((item: any, index: number) => (
+          <View key={index} style={styles.item}>
+            <Text style={styles.itemName}>{item.item_name}</Text>
+            <Text>Quantity: {item.qty}</Text>
+            <Text>Rate: ৳{item.rate}</Text>
+            <Text>Amount: ৳{item.amount}</Text>
+          </View>
+        ))}
       </View>
     </ScrollView>
   );
@@ -92,10 +105,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    marginBottom: 16,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 8,
+  },
+  item: {
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.gray[200],
+    paddingBottom: 12,
+  },
+  itemName: {
+    fontWeight: 'bold',
   },
 });

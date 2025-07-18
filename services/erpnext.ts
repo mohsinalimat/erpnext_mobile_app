@@ -1,5 +1,22 @@
 import api from './api';
 
+export const get_list = async ({ doctype, fields, filters = [] }: { doctype: string, fields: string[], filters?: any[] }) => {
+  try {
+    const response = await api.get(`/api/resource/${doctype}`, {
+      params: {
+        fields: JSON.stringify(fields),
+        filters: JSON.stringify(filters),
+        limit_page_length: 20,
+        order_by: 'creation desc',
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(`Failed to fetch ${doctype}:`, error.response?.data || error.message);
+    throw error;
+  }
+};
+
 // =================================================================
 // Customer
 // =================================================================

@@ -1,32 +1,63 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, StyleSheet, ActivityIndicator, Alert, ScrollView, TouchableOpacity } from 'react-native';
 import { createItem } from '@/services/offline';
 import { useNetwork } from '@/context/NetworkContext';
 import { theme } from '@/constants/theme';
 import { router } from 'expo-router';
+import DropDownPicker from 'react-native-dropdown-picker';
+import { get_list } from '@/services/erpnext';
+
+interface Item {
+  label: string;
+  value: string;
+}
 
 export default function NewItemScreen() {
   const { isConnected } = useNetwork();
   const [itemName, setItemName] = useState('');
-  const [itemGroup, setItemGroup] = useState('All Item Groups');
-  const [stockUom, setStockUom] = useState('Nos');
+  const [itemCode, setItemCode] = useState('');
+  const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const [itemGroupOpen, setItemGroupOpen] = useState(false);
+  const [itemGroupValue, setItemGroupValue] = useState(null);
+  const [itemGroups, setItemGroups] = useState<Item[]>([]);
+
+  const [uomOpen, setUomOpen] = useState(false);
+  const [uomValue, setUomValue] = useState(null);
+  const [uoms, setUoms] = useState<Item[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const itemGroupRes = await get_list({ doctype: 'Item Group', fields: ['name'] });
+        setItemGroups(itemGroupRes.data.map((g: any) => ({ label: g.name, value: g.name })));
+        const uomRes = await get_list({ doctype: 'UOM', fields: ['name'] });
+        setUoms(uomRes.data.map((u: any) => ({ label: u.name, value: u.name })));
+      } catch (error) {
+        Alert.alert('Error', 'Failed to fetch data for dropdowns.');
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleCreateItem = async () => {
     if (isConnected === null) {
       Alert.alert('Error', 'Cannot create item while network status is unknown.');
       return;
     }
-    if (!itemName) {
-      Alert.alert('Error', 'Item name is required.');
+    if (!itemName || !itemCode || !itemGroupValue || !uomValue) {
+      Alert.alert('Error', 'Please fill all required fields.');
       return;
     }
     setLoading(true);
     try {
       const result = await createItem(isConnected, {
         item_name: itemName,
-        item_group: itemGroup,
-        stock_uom: stockUom,
+        item_code: itemCode,
+        description: description,
+        item_group: itemGroupValue,
+        stock_uom: uomValue,
       });
       if (result.offline) {
         Alert.alert('Success', 'Item data saved locally and will be synced when online.');
@@ -42,34 +73,72 @@ export default function NewItemScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Text style={styles.label}>Item Name</Text>
       <TextInput
         style={styles.input}
         value={itemName}
-        onChangeText={setItemName}
+        onChangeText={(text) => {
+          setItemName(text);
+          setItemCode(text);
+        }}
         placeholder="Enter item name"
       />
-      <Text style={styles.label}>Item Group</Text>
+      <Text style={styles.label}>Item Code</Text>
       <TextInput
         style={styles.input}
-        value={itemGroup}
-        onChangeText={setItemGroup}
-        placeholder="Enter item group"
+        value={itemCode}
+        onChangeText={setItemCode}
+        placeholder="Enter item code"
       />
-        <Text style={styles.label}>Stock UOM</Text>
-        <TextInput
-            style={styles.input}
-            value={stockUom}
-            onChangeText={setStockUom}
-            placeholder="Enter stock UOM"
-        />
+      <Text style={styles.label}>Description</Text>
+      <TextInput
+        style={styles.input}
+        value={description}
+        onChangeText={setDescription}
+        placeholder="Enter description"
+        multiline
+        numberOfLines={4}
+        textAlignVertical="top"
+      />
+      <Text style={styles.label}>Item Group</Text>
+      <DropDownPicker
+        open={itemGroupOpen}
+        value={itemGroupValue}
+        items={itemGroups}
+        setOpen={setItemGroupOpen}
+        setValue={setItemGroupValue}
+        setItems={setItemGroups}
+        searchable={true}
+        placeholder="Select an item group"
+        style={styles.dropdown}
+        containerStyle={styles.dropdownContainer}
+        zIndex={3000}
+        zIndexInverse={1000}
+      />
+      <Text style={styles.label}>Default Unit of Measure</Text>
+      <DropDownPicker
+        open={uomOpen}
+        value={uomValue}
+        items={uoms}
+        setOpen={setUomOpen}
+        setValue={setUomValue}
+        setItems={setUoms}
+        searchable={true}
+        placeholder="Select a UOM"
+        style={styles.dropdown}
+        containerStyle={styles.dropdownContainer}
+        zIndex={2000}
+        zIndexInverse={2000}
+      />
       {loading ? (
         <ActivityIndicator size="large" color={theme.colors.primary[500]} />
       ) : (
-        <Button title="Create Item" onPress={handleCreateItem} />
+        <TouchableOpacity style={styles.button} onPress={handleCreateItem}>
+          <Text style={styles.buttonText}>Create Item</Text>
+        </TouchableOpacity>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -89,5 +158,27 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
     fontSize: 16,
+  },
+  dropdown: {
+    backgroundColor: theme.colors.white,
+    borderColor: '#ccc',
+  },
+  dropdownContainer: {
+    marginBottom: 16,
+  },
+  buttonContainer: {
+    marginTop: 20,
+  },
+  button: {
+    backgroundColor: theme.colors.primary[500],
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  buttonText: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

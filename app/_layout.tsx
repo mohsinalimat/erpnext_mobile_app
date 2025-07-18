@@ -31,6 +31,7 @@ function AuthStatusChecker() {
   return null; // This component doesn't render anything, it just handles redirection
 }
 
+
 export default function RootLayout() {
   useFrameworkReady();
 

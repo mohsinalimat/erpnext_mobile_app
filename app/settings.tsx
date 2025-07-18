@@ -69,7 +69,7 @@ export default function SettingsScreen() {
             <Text style={styles.userEmail}>{user?.email || 'user@example.com'}</Text>
           </View>
         </View>
-<TouchableOpacity style={styles.editProfileButton} onPress={() => router.push('/(tabs)/profile')}>
+<TouchableOpacity style={styles.editProfileButton} onPress={() => router.push('/profile')}>
     <Text style={styles.editProfileText}>{translations.edit}</Text>
 </TouchableOpacity>
       </View>

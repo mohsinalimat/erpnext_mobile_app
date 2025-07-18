@@ -1,48 +1,17 @@
 import { useEffect } from 'react';
-import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
-import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { AuthProvider } from '@/context/AuthContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { NetworkProvider } from '../context/NetworkContext';
+import { LanguageProvider } from '@/context/LanguageContext';
+import { Slot } from 'expo-router';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
-
-function RootLayoutNav() {
-  const { isAuthenticated, isInitialized } = useAuth();
-  const router = useRouter();
-  const segments = useSegments();
-
-  useEffect(() => {
-    if (!isInitialized) {
-      return;
-    }
-
-    const inTabsGroup = segments[0] === '(tabs)';
-
-    if (isAuthenticated && !inTabsGroup) {
-      router.replace('/(tabs)');
-    } else if (!isAuthenticated && inTabsGroup) {
-      router.replace('/(auth)/login');
-    }
-  }, [isAuthenticated, isInitialized, segments]);
-
-  return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="quotation/[id]" options={{ headerShown: true, title: 'Quotation Details' }} />
-      <Stack.Screen name="customer/[id]" options={{ headerShown: true, title: 'Customer Details' }} />
-      <Stack.Screen name="item/[id]" options={{ headerShown: true, title: 'Item Details' }} />
-      <Stack.Screen name="sales-order/[id]" options={{ headerShown: true, title: 'Sales Order Details' }} />
-      <Stack.Screen name="+not-found" />
-    </Stack>
-  );
-}
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -69,10 +38,14 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
-        <AuthProvider>
-          <RootLayoutNav />
-          <StatusBar style="auto" />
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <NetworkProvider>
+              <Slot />
+              <StatusBar style="auto" />
+            </NetworkProvider>
+          </AuthProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

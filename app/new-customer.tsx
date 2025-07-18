@@ -1,28 +1,38 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert } from 'react-native';
-import { createCustomer } from '@/services/erpnext';
+import { createCustomer } from '@/services/offline';
+import { useNetwork } from '@/context/NetworkContext';
 import { theme } from '@/constants/theme';
 import { router } from 'expo-router';
 
 export default function NewCustomerScreen() {
+  const { isConnected } = useNetwork();
   const [customerName, setCustomerName] = useState('');
   const [customerGroup, setCustomerGroup] = useState('All Customer Groups');
-    const [territory, setTerritory] = useState('All Territories');
+  const [territory, setTerritory] = useState('All Territories');
   const [loading, setLoading] = useState(false);
 
   const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
     if (!customerName) {
       Alert.alert('Error', 'Customer name is required.');
       return;
     }
     setLoading(true);
     try {
-      await createCustomer({
+      const result = await createCustomer(isConnected, {
         customer_name: customerName,
         customer_group: customerGroup,
         territory: territory,
       });
-      Alert.alert('Success', 'Customer created successfully.');
+      if (result.offline) {
+        Alert.alert('Success', 'Customer data saved locally and will be synced when online.');
+      } else {
+        Alert.alert('Success', 'Customer created successfully.');
+      }
       router.back();
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to create customer.');

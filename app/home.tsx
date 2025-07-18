@@ -14,6 +14,7 @@ import DashboardChart from '@/components/dashboard/DashboardChart';
 import AlertCard from '@/components/dashboard/AlertCard';
 import { fetchDashboardData } from '@/services/api';
 import { Clock, CreditCard, ShoppingCart, Users } from 'lucide-react-native';
+import MainLayout from '@/components/layout/MainLayout';
 
 interface DashboardData {
   salesTotal: number;
@@ -67,13 +68,14 @@ export default function DashboardScreen() {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
+    <MainLayout>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
       <View style={styles.headerSection}>
         <Text style={styles.welcomeText}>Hello, {user?.name || 'User'}</Text>
         <Text style={styles.dateText}>
@@ -155,7 +157,8 @@ export default function DashboardScreen() {
           ))
         )}
       </View>
-    </ScrollView>
+      </ScrollView>
+    </MainLayout>
   );
 }
 

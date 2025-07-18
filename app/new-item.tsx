@@ -1,28 +1,38 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert } from 'react-native';
-import { createItem } from '@/services/erpnext';
+import { createItem } from '@/services/offline';
+import { useNetwork } from '@/context/NetworkContext';
 import { theme } from '@/constants/theme';
 import { router } from 'expo-router';
 
 export default function NewItemScreen() {
+  const { isConnected } = useNetwork();
   const [itemName, setItemName] = useState('');
   const [itemGroup, setItemGroup] = useState('All Item Groups');
-    const [stockUom, setStockUom] = useState('Nos');
+  const [stockUom, setStockUom] = useState('Nos');
   const [loading, setLoading] = useState(false);
 
   const handleCreateItem = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create item while network status is unknown.');
+      return;
+    }
     if (!itemName) {
       Alert.alert('Error', 'Item name is required.');
       return;
     }
     setLoading(true);
     try {
-      await createItem({
+      const result = await createItem(isConnected, {
         item_name: itemName,
         item_group: itemGroup,
         stock_uom: stockUom,
       });
-      Alert.alert('Success', 'Item created successfully.');
+      if (result.offline) {
+        Alert.alert('Success', 'Item data saved locally and will be synced when online.');
+      } else {
+        Alert.alert('Success', 'Item created successfully.');
+      }
       router.back();
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to create item.');

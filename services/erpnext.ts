@@ -83,12 +83,34 @@ export const getItemByName = async (name: string) => {
   }
 };
 
+export const getItemPrice = async (itemCode: string, priceList = "Standard Selling") => {
+  try {
+    const response = await api.get('/api/resource/Item Price', {
+      params: {
+        fields: '["price_list_rate"]',
+        filters: JSON.stringify([
+            ["item_code", "=", itemCode],
+            ["price_list", "=", priceList]
+        ]),
+        limit_page_length: 1
+      },
+    });
+    if (response.data.data && response.data.data.length > 0) {
+        return response.data.data[0];
+    }
+    return null;
+  } catch (error: any) {
+    console.error('Failed to fetch item price:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
 
 // =================================================================
 // Quotation
 // =================================================================
 
-export const getQuotations = async (filters = [], fields = '["name", "transaction_date", "status", "grand_total"]') => {
+export const getQuotations = async (filters = [], fields = '["name", "customer_name", "transaction_date", "status", "grand_total", "valid_till"]') => {
   try {
     const response = await api.get('/api/resource/Quotation', {
       params: {
@@ -117,7 +139,29 @@ export const createQuotation = async (quotationData: any) => {
 
 export const getQuotationByName = async (name: string) => {
   try {
-    const response = await api.get(`/api/resource/Quotation/${name}`);
+    const response = await api.get(`/api/resource/Quotation/${name}`, {
+      params: {
+        fields: JSON.stringify([
+          "name",
+          "status",
+          "customer_name",
+          "quotation_to",
+          "transaction_date",
+          "valid_till",
+          "order_type",
+          "items.item_code",
+          "items.qty",
+          "items.rate",
+          "items.amount",
+          "total_qty",
+          "total",
+          "total_taxes_and_charges",
+          "grand_total",
+          "rounded_total",
+          "in_words"
+        ]),
+      }
+    });
     return response.data.data;
   } catch (error: any) {
     console.error(`Failed to fetch quotation ${name}:`, error.response?.data || error.message);
@@ -159,7 +203,28 @@ export const createSalesOrder = async (salesOrderData: any) => {
 
 export const getSalesOrderByName = async (name: string) => {
   try {
-    const response = await api.get(`/api/resource/Sales Order/${name}`);
+    const response = await api.get(`/api/resource/Sales Order/${name}`, {
+      params: {
+        fields: JSON.stringify([
+          "name",
+          "status",
+          "customer_name",
+          "transaction_date",
+          "delivery_date",
+          "order_type",
+          "items.item_code",
+          "items.qty",
+          "items.rate",
+          "items.amount",
+          "total_qty",
+          "total",
+          "total_taxes_and_charges",
+          "grand_total",
+          "rounded_total",
+          "in_words"
+        ]),
+      }
+    });
     return response.data.data;
   } catch (error: any) {
     console.error(`Failed to fetch sales order ${name}:`, error.response?.data || error.message);

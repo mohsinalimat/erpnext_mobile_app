@@ -87,7 +87,7 @@ export default function ForgotPasswordScreen() {
           </TouchableOpacity>
         </View>
 
-        <Link href="/(auth)/login" style={styles.backToLoginButton}>
+        <Link href="/login" style={styles.backToLoginButton}>
           <Text style={styles.backToLoginText}>Back to Login</Text>
         </Link>
       </View>

@@ -1,32 +1,39 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert } from 'react-native';
-import { createSalesOrder } from '@/services/erpnext';
+import { createTask } from '@/services/offline';
+import { useNetwork } from '@/context/NetworkContext';
 import { theme } from '@/constants/theme';
 import { router } from 'expo-router';
 
-export default function NewSalesOrderScreen() {
-    const [customer, setCustomer] = useState('');
-    const [status, setStatus] = useState('Draft');
-    const [grandTotal, setGrandTotal] = useState('0');
+export default function NewTaskScreen() {
+  const { isConnected } = useNetwork();
+  const [subject, setSubject] = useState('');
+  const [status, setStatus] = useState('Open');
   const [loading, setLoading] = useState(false);
 
-  const handleCreateSalesOrder = async () => {
-    if (!customer) {
-      Alert.alert('Error', 'Customer is required.');
+  const handleCreateTask = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create task while network status is unknown.');
+      return;
+    }
+    if (!subject) {
+      Alert.alert('Error', 'Subject is required.');
       return;
     }
     setLoading(true);
     try {
-      await createSalesOrder({
-        customer: customer,
+      const result = await createTask(isConnected, {
+        subject: subject,
         status: status,
-        grand_total: grandTotal,
-        transaction_date: new Date().toISOString().slice(0, 10),
       });
-      Alert.alert('Success', 'Sales Order created successfully.');
+      if (result.offline) {
+        Alert.alert('Success', 'Task data saved locally and will be synced when online.');
+      } else {
+        Alert.alert('Success', 'Task created successfully.');
+      }
       router.back();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to create sales order.');
+      Alert.alert('Error', error.message || 'Failed to create task.');
     } finally {
       setLoading(false);
     }
@@ -34,12 +41,12 @@ export default function NewSalesOrderScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Customer</Text>
+      <Text style={styles.label}>Subject</Text>
       <TextInput
         style={styles.input}
-        value={customer}
-        onChangeText={setCustomer}
-        placeholder="Enter customer name"
+        value={subject}
+        onChangeText={setSubject}
+        placeholder="Enter task subject"
       />
       <Text style={styles.label}>Status</Text>
       <TextInput
@@ -48,18 +55,10 @@ export default function NewSalesOrderScreen() {
         onChangeText={setStatus}
         placeholder="Enter status"
       />
-        <Text style={styles.label}>Grand Total</Text>
-        <TextInput
-            style={styles.input}
-            value={grandTotal}
-            onChangeText={setGrandTotal}
-            placeholder="Enter grand total"
-            keyboardType="numeric"
-        />
       {loading ? (
         <ActivityIndicator size="large" color={theme.colors.primary[500]} />
       ) : (
-        <Button title="Create Sales Order" onPress={handleCreateSalesOrder} />
+        <Button title="Create Task" onPress={handleCreateTask} />
       )}
     </View>
   );

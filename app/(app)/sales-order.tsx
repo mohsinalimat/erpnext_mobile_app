@@ -1,39 +1,39 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, FlatList, ActivityIndicator, StyleSheet, Pressable, TextInput, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { getItems } from '@/services/offline';
+import { getSalesOrders } from '@/services/offline';
 import { useTheme } from '@/context/ThemeContext';
 import { useNetwork } from '@/context/NetworkContext';
 import { router } from 'expo-router';
 
-export default function ItemsScreen() {
+export default function SalesOrderScreen() {
   const { theme } = useTheme();
   const { isConnected } = useNetwork();
-  const [items, setItems] = useState<any[]>([]);
+  const [salesOrders, setSalesOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredItems = useMemo(() => {
-    return items.filter(item =>
-      (item.item_name || item.name).toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.item_group.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredSalesOrders = useMemo(() => {
+    return salesOrders.filter(order =>
+      order.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.customer_name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [items, searchQuery]);
+  }, [salesOrders, searchQuery]);
 
   useEffect(() => {
-    async function fetchItems() {
+    async function fetchSalesOrders() {
       if (isConnected === null) return;
       try {
-        const data = await getItems(isConnected);
-        setItems(data);
+        const data = await getSalesOrders(isConnected, [], '["name", "customer_name", "transaction_date", "status", "grand_total", "po_no", "po_date", "delivery_date", "items"]');
+        setSalesOrders(data);
       } catch (err: any) {
-        setError(err.message || 'Failed to load items');
+        setError(err.message || 'Failed to load sales orders');
       } finally {
         setLoading(false);
       }
     }
-    fetchItems();
+    fetchSalesOrders();
   }, [isConnected]);
 
   const styles = useMemo(() => StyleSheet.create({
@@ -80,12 +80,39 @@ export default function ItemsScreen() {
       elevation: 2,
       backgroundColor: theme.colors.white,
     },
+    itemHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 8,
+    },
     itemTitle: {
       fontWeight: 'bold',
-      marginBottom: 8,
       fontSize: 16,
+      color: theme.colors.text.primary,
     },
+    itemRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 8,
+    },
+    itemFooter: {
+        marginTop: 8,
+        alignItems: 'flex-end',
+    }
   }), [theme]);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'To Deliver and Bill':
+        return theme.colors.yellow[500];
+      case 'Completed':
+        return theme.colors.green[500];
+      case 'Cancelled':
+        return theme.colors.red[500];
+      default:
+        return theme.colors.gray[500];
+    }
+  };
 
   if (loading) {
     return (
@@ -104,10 +131,32 @@ export default function ItemsScreen() {
   }
 
   const renderItem = ({ item }: { item: any }) => (
-    <Pressable onPress={() => router.push(`/item/${item.name}` as any)}>
+    <Pressable onPress={() => router.push({
+      pathname: '/sales-order-preview',
+      params: {
+        customerName: item.customer_name,
+        customer: item.customer, // Assuming 'customer' field exists in the fetched data
+        poNo: item.po_no,
+        poDate: item.po_date,
+        date: item.transaction_date,
+        deliveryDate: item.delivery_date,
+        items: JSON.stringify(item.items),
+      }
+    })}>
       <View style={[styles.itemContainer, { backgroundColor: theme.colors.white }]}>
-        <Text style={[styles.itemTitle, { color: theme.colors.text.primary }]}>{item.item_name || item.name}</Text>
-        <Text style={{ color: theme.colors.text.secondary }}>Group: {item.item_group}</Text>
+        <View style={styles.itemHeader}>
+            <Text style={[styles.itemTitle]}>{item.name}</Text>
+            <Text style={{ color: getStatusColor(item.status), fontWeight: 'bold' }}>{item.status}</Text>
+        </View>
+        <View style={styles.itemRow}>
+            <Text style={{ color: theme.colors.text.secondary }}>{item.customer_name}</Text>
+            <Text style={{ color: theme.colors.text.secondary }}>{item.transaction_date}</Text>
+        </View>
+        <View style={styles.itemFooter}>
+            <Text style={{ color: theme.colors.text.primary, fontSize: 16, fontWeight: 'bold' }}>
+                Total: ৳{item.grand_total}
+            </Text>
+        </View>
       </View>
     </Pressable>
   );
@@ -117,12 +166,12 @@ export default function ItemsScreen() {
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by item name or group"
+          placeholder="Search by customer or order ID"
           placeholderTextColor={theme.colors.text.secondary}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-        <TouchableOpacity style={styles.addButton} onPress={() => router.push('/new-item')}>
+        <TouchableOpacity style={styles.addButton} onPress={() => router.push('/new-sales-order')}>
           <Feather name="plus" size={24} color={theme.colors.white} />
         </TouchableOpacity>
       </View>
@@ -130,13 +179,13 @@ export default function ItemsScreen() {
         <View style={styles.center}>
           <ActivityIndicator size="large" color={theme.colors.primary[500]} />
         </View>
-      ) : filteredItems.length === 0 ? (
+      ) : filteredSalesOrders.length === 0 ? (
         <View style={styles.center}>
-          <Text>No items found.</Text>
+          <Text>No sales orders found.</Text>
         </View>
       ) : (
         <FlatList
-          data={filteredItems}
+          data={filteredSalesOrders}
           keyExtractor={(item) => item.name}
           renderItem={renderItem}
           contentContainerStyle={styles.listContainer}

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 import { Platform } from 'react-native';
 import { loginToERPNext } from '@/services/api';
 
@@ -126,6 +127,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await setStoredItem('token', token);
       await setStoredItem('serverUrl', serverUrl);
       
+      // Explicitly store user ID in AsyncStorage for background tasks
+      await AsyncStorage.setItem('user_id', user.id);
+
       setUser(user);
       setIsAuthenticated(true);
     } catch (error: any) {
@@ -142,6 +146,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await removeStoredItem('token');
       await removeStoredItem('serverUrl');
       
+      // Also remove user ID from AsyncStorage on sign out
+      await AsyncStorage.removeItem('user_id');
+
       setUser(null);
       setIsAuthenticated(false);
     } catch (error) {

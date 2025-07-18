@@ -14,7 +14,7 @@ const navItems: NavItem[] = [
   {
     name: 'home',
     icon: 'home',
-    route: '/index',
+    route: '/(app)/mainmenu',
     label: 'Home'
   },
   {

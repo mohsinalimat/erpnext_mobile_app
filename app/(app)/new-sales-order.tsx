@@ -99,8 +99,10 @@ export default function NewSalesOrderScreen() {
             items: JSON.stringify(items),
         };
 
+        console.log('Navigating to sales-order-preview with params:', params); // Add this log
+
         router.push({
-            pathname: '/sales-order-preview',
+            pathname: '/sales-order-preview', // Reverted to absolute path
             params,
         });
     };

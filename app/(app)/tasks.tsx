@@ -1,40 +1,38 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { View, Text, FlatList, ActivityIndicator, StyleSheet, Pressable, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { getCustomers } from '@/services/offline';
+import { getTasks } from '@/services/offline';
 import { useTheme } from '@/context/ThemeContext';
 import { useNetwork } from '@/context/NetworkContext';
 import { router } from 'expo-router';
-import MainLayout from '@/components/layout/MainLayout';
 
-export default function CustomersScreen() {
+export default function TasksScreen() {
   const { theme } = useTheme();
   const { isConnected } = useNetwork();
-  const [customers, setCustomers] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredCustomers = useMemo(() => {
-    return customers.filter(customer =>
-      (customer.customer_name || customer.name).toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.customer_group.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(task =>
+      task.subject.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [customers, searchQuery]);
+  }, [tasks, searchQuery]);
 
   useEffect(() => {
-    async function fetchCustomers() {
+    async function fetchTasks() {
       if (isConnected === null) return;
       try {
-        const data = await getCustomers(isConnected);
-        setCustomers(data);
+        const data = await getTasks(isConnected);
+        setTasks(data);
       } catch (err: any) {
-        setError(err.message || 'Failed to load customers');
+        setError(err.message || 'Failed to load tasks');
       } finally {
         setLoading(false);
       }
     }
-    fetchCustomers();
+    fetchTasks();
   }, [isConnected]);
 
   const styles = useMemo(() => StyleSheet.create({
@@ -64,22 +62,25 @@ export default function CustomersScreen() {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
+      backgroundColor: theme.colors.background,
     },
     errorText: {
-      color: 'red',
+      color: theme.colors.error[500],
     },
     listContainer: {
       padding: 16,
+      backgroundColor: theme.colors.background,
     },
     itemContainer: {
+      backgroundColor: theme.colors.white,
       padding: 16,
       marginBottom: 12,
       borderRadius: 8,
+      shadowColor: theme.colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
       elevation: 2,
-      backgroundColor: theme.colors.white,
     },
     itemTitle: {
       fontWeight: 'bold',
@@ -104,26 +105,28 @@ export default function CustomersScreen() {
     );
   }
 
-  const renderItem = ({ item }: { item: any }) => (
-    <Pressable onPress={() => router.push(`/customer/${item.name}` as any)}>
-      <View style={[styles.itemContainer, { backgroundColor: theme.colors.white }]}>
-        <Text style={[styles.itemTitle, { color: theme.colors.text.primary }]}>{item.customer_name || item.name}</Text>
-        <Text style={{ color: theme.colors.text.secondary }}>Group: {item.customer_group}</Text>
-      </View>
-    </Pressable>
-  );
+const renderItem = ({ item }: { item: any }) => (
+  <TouchableOpacity onPress={() => router.push({ pathname: '/task-preview', params: { id: item.name } } as any)}>
+    <View style={styles.itemContainer}>
+      <Text style={styles.itemTitle}>{item.subject}</Text>
+      <Text>Status: {item.status}</Text>
+      <Text>Start Date: {item.exp_start_date}</Text>
+      <Text>End Date: {item.exp_end_date}</Text>
+    </View>
+  </TouchableOpacity>
+);
 
   return (
-    <MainLayout>
+    <View style={{flex: 1}}>
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by customer name or group"
+          placeholder="Search by task subject"
           placeholderTextColor={theme.colors.text.secondary}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-        <TouchableOpacity style={styles.addButton} onPress={() => router.push('/new-customer')}>
+        <TouchableOpacity style={styles.addButton} onPress={() => router.push('/new-task')}>
           <Feather name="plus" size={24} color={theme.colors.white} />
         </TouchableOpacity>
       </View>
@@ -131,18 +134,18 @@ export default function CustomersScreen() {
         <View style={styles.center}>
           <ActivityIndicator size="large" color={theme.colors.primary[500]} />
         </View>
-      ) : filteredCustomers.length === 0 ? (
+      ) : filteredTasks.length === 0 ? (
         <View style={styles.center}>
-          <Text>No customers found.</Text>
+          <Text>No tasks found.</Text>
         </View>
       ) : (
         <FlatList
-          data={filteredCustomers}
+          data={filteredTasks}
           keyExtractor={(item) => item.name}
           renderItem={renderItem}
           contentContainerStyle={styles.listContainer}
         />
       )}
-    </MainLayout>
+    </View>
   );
 }

@@ -5,6 +5,14 @@ import { useTheme } from '@/context/ThemeContext';
 import { useNetwork } from '@/context/NetworkContext';
 import { createSalesOrder } from '@/services/offline';
 
+interface SalesOrderItem {
+    item_code: string;
+    item_name: string;
+    qty: number;
+    rate: number;
+    amount: number;
+}
+
 export default function SalesOrderPreviewScreen() {
     const { theme } = useTheme();
     const { isConnected } = useNetwork();
@@ -16,10 +24,33 @@ export default function SalesOrderPreviewScreen() {
     const poDate = params.poDate as string;
     const date = params.date as string;
     const deliveryDate = params.deliveryDate as string;
-    const items = JSON.parse(params.items as string);
+    let items: SalesOrderItem[] = [];
+    try {
+        if (typeof params.items === 'string') {
+            const parsedItems = JSON.parse(params.items);
+            if (Array.isArray(parsedItems)) {
+                items = parsedItems.map(item => ({
+                    item_code: String(item.item_code || ''),
+                    item_name: String(item.item_name || ''),
+                    qty: parseFloat(item.qty) || 0,
+                    rate: parseFloat(item.rate) || 0,
+                    amount: parseFloat(item.amount) || 0,
+                }));
+            } else {
+                console.warn('Parsed items is not an array:', parsedItems);
+            }
+        } else {
+            console.warn('Items parameter is not a valid JSON string:', params.items);
+        }
+    } catch (e) {
+        console.error('Failed to parse items parameter:', e);
+    }
     const customer = params.customer as string;
 
-    const totalAmount = items.reduce((acc: number, item: any) => acc + parseFloat(item.amount), 0);
+    const totalAmount = items.reduce((acc: number, item: SalesOrderItem) => {
+        const amount = parseFloat(String(item.amount));
+        return acc + (isNaN(amount) ? 0 : amount);
+    }, 0);
 
     const handleConfirmAndCreate = async () => {
         if (isConnected === null) {
@@ -34,11 +65,11 @@ export default function SalesOrderPreviewScreen() {
                 po_date: poDate,
                 transaction_date: date,
                 delivery_date: deliveryDate,
-                items: items.map((item: any) => ({
+                items: items.map((item: SalesOrderItem) => ({
                     item_code: item.item_code,
-                    qty: parseFloat(item.qty),
-                    rate: parseFloat(item.rate),
-                    amount: parseFloat(item.amount),
+                    qty: item.qty,
+                    rate: item.rate,
+                    amount: item.amount,
                 })),
             });
             if (result.offline) {
@@ -147,7 +178,7 @@ export default function SalesOrderPreviewScreen() {
 
             <View style={styles.card}>
                 <Text style={styles.title}>Items</Text>
-                {items.map((item: any, index: number) => (
+                {items.map((item: SalesOrderItem, index: number) => (
                     <View key={index} style={styles.itemContainer}>
                         <Text style={styles.itemText}>{item.item_name}</Text>
                         <Text style={styles.itemText}>Qty: {item.qty} @ Rate: {item.rate}</Text>

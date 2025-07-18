@@ -303,5 +303,49 @@ export const createCheckIn = async (data: { employee: string; log_type: 'IN' | '
   }
 };
 
+export const postLocationData = async (locationData: {
+  user: string; // Changed from userId to user
+  latitude: number;
+  longitude: number;
+  timestamp: string;
+  // Removed deviceId and locationSource as per user's new spec
+}) => {
+  try {
+    // Changed endpoint to /api/resource/Mobile Location and wrapped data in 'data' key
+    const response = await api.post('/api/resource/Mobile Location', { data: locationData });
+    console.log('Location data posted successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error posting location data:', error);
+    throw error;
+  }
+};
+
+export const fetchDocTypeData = async (doctype: string, fields: string[] = ['name'], filters: any[] = [], orderBy: string = 'name asc') => {
+  try {
+    const response = await api.get(`/api/resource/${doctype}`, {
+      params: {
+        fields: JSON.stringify(fields),
+        filters: JSON.stringify(filters),
+        order_by: orderBy,
+        limit_page_length: 1000, // Adjust as needed
+      },
+    });
+    return response.data.data || [];
+  } catch (error) {
+    console.error(`Error fetching ${doctype} data:`, error);
+    throw error;
+  }
+};
+
+export const createDoc = async (doctype: string, doc: any) => {
+  try {
+    const response = await api.post(`/api/resource/${doctype}`, doc);
+    return response.data.data;
+  } catch (error) {
+    console.error(`Error creating ${doctype}:`, error);
+    throw error;
+  }
+};
 
 export default api;

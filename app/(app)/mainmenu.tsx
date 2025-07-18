@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { useAuth } from '@/context/AuthContext';
-import LoadingAnimation from '@/components/common/LoadingAnimation';
+import { useAuth } from '../../context/AuthContext';
+import LoadingAnimation from '../../components/common/LoadingAnimation';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 
-export default function Index() {
+export default function MainMenu() {
   const { isAuthenticated, isInitialized } = useAuth();
 
   if (!isInitialized) {
@@ -52,6 +52,20 @@ export default function Index() {
       icon: 'check-square',
       color: '#3B82F6',
       route: '/tasks'
+    },
+    {
+      title: 'Address',
+      subtitle: 'Address book',
+      icon: 'map-pin',
+      color: '#10B981',
+      route: '/address'
+    },
+    {
+      title: 'Contact',
+      subtitle: 'Contact book',
+      icon: 'phone',
+      color: '#F59E0B',
+      route: '/contact'
     },
     {
       title: 'Profile',

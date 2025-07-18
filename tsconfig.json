@@ -5,7 +5,8 @@
     "jsx": "react-native",
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "esModuleInterop": true
   },
   "include": [
     "**/*.ts",

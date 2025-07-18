@@ -311,8 +311,9 @@ export const postLocationData = async (locationData: {
   // Removed deviceId and locationSource as per user's new spec
 }) => {
   try {
-    // Changed endpoint to /api/resource/Mobile Location and wrapped data in 'data' key
-    const response = await api.post('/api/resource/Mobile Location', { data: locationData });
+    console.log('Posting location data:', JSON.stringify(locationData, null, 2));
+    // Changed endpoint to /api/resource/Mobile Location and removed data wrapper
+    const response = await api.post('/api/resource/Mobile Location', locationData);
     console.log('Location data posted successfully:', response.data);
     return response.data;
   } catch (error) {

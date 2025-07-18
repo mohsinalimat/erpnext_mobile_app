@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import LoadingAnimation from '../../components/common/LoadingAnimation';
@@ -8,13 +8,14 @@ import { Feather } from '@expo/vector-icons';
 export default function MainMenu() {
   const { isAuthenticated, isInitialized } = useAuth();
 
-  if (!isInitialized) {
-    return <LoadingAnimation />;
-  }
+  useEffect(() => {
+    if (isInitialized && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isInitialized, isAuthenticated]);
 
-  if (!isAuthenticated) {
-    router.replace('/login');
-    return null; // Or a loading indicator, as the redirect happens immediately
+  if (!isInitialized || !isAuthenticated) {
+    return <LoadingAnimation />;
   }
 
   const menuItems = [

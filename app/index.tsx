@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
-import { theme } from '@/constants/theme';
 import LoadingAnimation from '@/components/common/LoadingAnimation';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -14,14 +13,8 @@ export default function Index() {
   }
 
   if (!isAuthenticated) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Welcome to Prime ERP Mobile</Text>
-        <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/login')}>
-          <Text style={styles.loginButtonText}>Login</Text>
-        </TouchableOpacity>
-      </View>
-    );
+    router.replace('/login');
+    return null; // Or a loading indicator, as the redirect happens immediately
   }
 
   const menuItems = [
@@ -178,24 +171,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     marginLeft: 12,
-  },
-  loginButton: {
-    backgroundColor: theme.colors.primary[500],
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  loginButtonText: {
-    color: theme.colors.white,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 10,
-    textAlign: 'center',
   },
 });

@@ -92,7 +92,7 @@ export default function LoginScreen() {
             <Server color={theme.colors.gray[500]} size={20} />
             <TextInput
               style={styles.input}
-              placeholder="ERPNext Server URL"
+              placeholder="Server URL"
               value={serverUrl}
               onChangeText={setServerUrl}
               autoCapitalize="none"

@@ -1,12 +1,14 @@
-import api from './api';
+import api, { uploadFile } from './api';
 
-export const get_list = async ({ doctype, fields, filters = [] }: { doctype: string, fields: string[], filters?: any[] }) => {
+export { uploadFile };
+
+export const get_list = async ({ doctype, fields, filters = [], limit_page_length = 20 }: { doctype: string, fields: string[], filters?: any[], limit_page_length?: number }) => {
   try {
     const response = await api.get(`/api/resource/${doctype}`, {
       params: {
         fields: JSON.stringify(fields),
         filters: JSON.stringify(filters),
-        limit_page_length: 20,
+        limit_page_length,
         order_by: 'creation desc',
       },
     });
@@ -182,6 +184,37 @@ export const getQuotationByName = async (name: string) => {
     return response.data.data;
   } catch (error: any) {
     console.error(`Failed to fetch quotation ${name}:`, error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// =================================================================
+// Sales Taxes and Charges Template
+// =================================================================
+
+export const getSalesTaxesAndChargesTemplates = async (filters = [], fields = '["name", "title"]') => {
+  try {
+    const response = await api.get('/api/resource/Sales Taxes and Charges Template', {
+      params: {
+        fields: fields,
+        filters: JSON.stringify(filters),
+        limit_page_length: 20,
+        order_by: 'creation desc',
+      },
+    });
+    return response.data.data;
+  } catch (error: any) {
+    console.error('Failed to fetch sales taxes and charges templates:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const getSalesTaxesAndChargesTemplateByName = async (name: string) => {
+  try {
+    const response = await api.get(`/api/resource/Sales Taxes and Charges Template/${name}`);
+    return response.data.data;
+  } catch (error: any) {
+    console.error(`Failed to fetch sales taxes and charges template ${name}:`, error.response?.data || error.message);
     throw error;
   }
 };

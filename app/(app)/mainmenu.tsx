@@ -79,13 +79,6 @@ export default function MainMenu() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Prime ERP Mobile</Text>
-        <TouchableOpacity onPress={() => router.push('/settings' as any)}>
-          <Feather name="settings" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
-      
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.gridContainer}>
           {menuItems.map((item, index) => (
@@ -123,19 +116,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5ca01',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
   },
   scrollView: {
     flex: 1,

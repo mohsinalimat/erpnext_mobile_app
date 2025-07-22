@@ -304,16 +304,16 @@ export const createCheckIn = async (data: { employee: string; log_type: 'IN' | '
 };
 
 export const postLocationData = async (locationData: {
-  user: string; // Changed from userId to user
+  user: string;
   latitude: number;
   longitude: number;
   timestamp: string;
-  // Removed deviceId and locationSource as per user's new spec
 }) => {
   try {
     console.log('Posting location data:', JSON.stringify(locationData, null, 2));
-    // Changed endpoint to /api/resource/Mobile Location and removed data wrapper
-    const response = await api.post('/api/resource/Mobile Location', locationData);
+    const response = await api.post('/api/resource/Mobile Location', {
+      data: locationData,
+    });
     console.log('Location data posted successfully:', response.data);
     return response.data;
   } catch (error) {
@@ -345,6 +345,27 @@ export const createDoc = async (doctype: string, doc: any) => {
     return response.data.data;
   } catch (error) {
     console.error(`Error creating ${doctype}:`, error);
+    throw error;
+  }
+};
+
+export const uploadFile = async (file: any) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('is_private', '0');
+  formData.append('folder', 'Home');
+  formData.append('doctype', 'Item');
+  formData.append('docname', '');
+
+  try {
+    const response = await api.post('/api/method/upload_file', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error uploading file:', error);
     throw error;
   }
 };

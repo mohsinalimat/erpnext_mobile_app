@@ -23,10 +23,10 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
       const lastLocation = locations[locations.length - 1];
 
       const locationPayload = {
+        user: userId,
         latitude: lastLocation.coords.latitude,
         longitude: lastLocation.coords.longitude,
         timestamp: new Date(lastLocation.timestamp).toISOString(),
-        user: userId, // Changed from userId to user
       };
 
       try {

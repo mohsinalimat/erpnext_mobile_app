@@ -105,9 +105,9 @@ const styles = StyleSheet.create({
   navBar: {
     flexDirection: 'row',
     backgroundColor: '#1F2937',
-    paddingVertical: 12,
+    paddingVertical: -10,
     paddingHorizontal: 20,
-    paddingBottom: 34, // Extra padding for safe area
+    paddingBottom: 0, // Extra padding for safe area
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     shadowColor: '#000',

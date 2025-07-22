@@ -1,34 +1,188 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { getCustomers, getItems, getItemPrice, getSalesTaxesAndChargesTemplates, getSalesTaxesAndChargesTemplateByName } from '@/services/erpnext';
 import { createQuotation } from '@/services/offline';
+import { Feather } from '@expo/vector-icons';
 import { useNetwork } from '@/context/NetworkContext';
 import { theme } from '@/constants/theme';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Picker } from '@react-native-picker/picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
+
+interface Customer {
+  name: string;
+  customer_name: string;
+}
+
+interface Item {
+  name: string;
+  item_name: string;
+}
+
+interface QuotationItem {
+  key: number;
+  item_code: string;
+  qty: number;
+  rate: number;
+  amount: number;
+}
+
+interface SalesTax {
+  type: string;
+  rate: number;
+  amount: number;
+  total: number;
+}
+
+interface SalesTaxesAndChargesTemplate {
+  name: string;
+  title: string;
+}
 
 export default function NewQuotationScreen() {
   const { isConnected } = useNetwork();
-  const [customer, setCustomer] = useState('');
-  const [status, setStatus] = useState('Draft');
-  const [grandTotal, setGrandTotal] = useState('0');
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState('');
+  const [date, setDate] = useState(new Date());
+  const [validTill, setValidTill] = useState(new Date(new Date().setDate(new Date().getDate() + 7)));
+  const [items, setItems] = useState<QuotationItem[]>([{ key: 1, item_code: '', qty: 1, rate: 0, amount: 0 }]);
+  const [allItems, setAllItems] = useState<Item[]>([]);
+  const [salesTaxesAndChargesTemplates, setSalesTaxesAndChargesTemplates] = useState<SalesTaxesAndChargesTemplate[]>([]);
+  const [selectedSalesTaxesAndChargesTemplate, setSelectedSalesTaxesAndChargesTemplate] = useState('');
+  const [taxes, setTaxes] = useState<SalesTax[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showValidTillPicker, setShowValidTillPicker] = useState(false);
+  const params = useLocalSearchParams();
+
+  useEffect(() => {
+    if (params.create) {
+      handleCreateQuotation();
+    }
+  }, [params.create]);
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const [customerList, itemList, templates] = await Promise.all([
+          getCustomers(),
+          getItems(),
+          getSalesTaxesAndChargesTemplates(),
+        ]);
+        setCustomers(customerList);
+        setAllItems(itemList);
+        setSalesTaxesAndChargesTemplates(templates);
+      } catch (error) {
+        Alert.alert('Error', 'Failed to fetch initial data.');
+      }
+    };
+    fetchInitialData();
+  }, []);
+
+  const calculateTaxes = (currentItems: QuotationItem[], template: any) => {
+    if (!template || !template.taxes) {
+      return [];
+    }
+
+    const newTaxes: SalesTax[] = template.taxes.map((tax: any) => {
+      const totalRate = currentItems.reduce((acc, item) => acc + item.rate, 0);
+      const totalQty = currentItems.reduce((acc, item) => acc + item.qty, 0);
+      const amount = (tax.rate * totalRate) / 100;
+      const total = amount * totalQty;
+      return {
+        type: tax.charge_type,
+        rate: tax.rate,
+        amount: amount,
+        total: total,
+      };
+    });
+    return newTaxes;
+  };
+
+  const handleItemChange = async (value: string | number, index: number, field: keyof QuotationItem) => {
+    const newItems = [...items];
+    const item = newItems[index];
+
+    if (typeof field === 'string' && field in item) {
+      // @ts-ignore
+      item[field] = value;
+    }
+
+    if (field === 'item_code' && typeof value === 'string' && value) {
+      try {
+        const price = await getItemPrice(value);
+        newItems[index].rate = price?.price_list_rate || 0;
+      } catch (error) {
+        Alert.alert('Error', 'Failed to fetch item price.');
+        newItems[index].rate = 0;
+      }
+    }
+
+    newItems[index].amount = (newItems[index].qty || 0) * (newItems[index].rate || 0);
+    setItems(newItems);
+
+    if (selectedSalesTaxesAndChargesTemplate) {
+      const template = await getSalesTaxesAndChargesTemplateByName(selectedSalesTaxesAndChargesTemplate);
+      setTaxes(calculateTaxes(newItems, template));
+    }
+  };
+
+  const handleTemplateChange = async (templateName: string) => {
+    setSelectedSalesTaxesAndChargesTemplate(templateName);
+    if (templateName) {
+      try {
+        const template = await getSalesTaxesAndChargesTemplateByName(templateName);
+        setTaxes(calculateTaxes(items, template));
+      } catch (error) {
+        Alert.alert('Error', 'Failed to fetch sales taxes and charges template details.');
+      }
+    } else {
+      setTaxes([]);
+    }
+  };
+
+  const addNewItem = () => {
+    setItems([...items, { key: items.length + 1, item_code: '', qty: 1, rate: 0, amount: 0 }]);
+  };
+
+  const removeItem = (index: number) => {
+    const newItems = items.filter((_, i) => i !== index);
+    setItems(newItems);
+  };
+
+  const calculateSubTotal = () => {
+    return items.reduce((total, item) => total + item.amount, 0);
+  };
+
+  const calculateTotalTaxes = () => {
+    return taxes.reduce((total, tax) => total + tax.total, 0);
+  };
+
+  const calculateGrandTotal = () => {
+    return calculateSubTotal() + calculateTotalTaxes();
+  };
 
   const handleCreateQuotation = async () => {
     if (isConnected === null) {
       Alert.alert('Error', 'Cannot create quotation while network status is unknown.');
       return;
     }
-    if (!customer) {
+    if (!selectedCustomer) {
       Alert.alert('Error', 'Customer is required.');
       return;
     }
     setLoading(true);
     try {
-      const result = await createQuotation(isConnected, {
-        customer: customer,
-        status: status,
-        grand_total: parseFloat(grandTotal) || 0,
-        transaction_date: new Date().toISOString().slice(0, 10),
-      });
+      const quotationData = {
+        customer: selectedCustomer,
+        transaction_date: date.toISOString().slice(0, 10),
+        valid_till: validTill.toISOString().slice(0, 10),
+        items: items.map(({ key, ...rest }) => rest),
+        taxes: taxes,
+        grand_total: calculateGrandTotal(),
+        status: 'Draft',
+      };
+      const result = await createQuotation(isConnected, quotationData);
       if (result.offline) {
         Alert.alert('Success', 'Quotation data saved locally and will be synced when online.');
       } else {
@@ -43,35 +197,157 @@ export default function NewQuotationScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>Customer</Text>
-      <TextInput
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        <Text style={styles.label}>Customer</Text>
+      <Picker
+        selectedValue={selectedCustomer}
+        onValueChange={(itemValue) => setSelectedCustomer(itemValue)}
         style={styles.input}
-        value={customer}
-        onChangeText={setCustomer}
-        placeholder="Enter customer name"
-      />
-      <Text style={styles.label}>Status</Text>
-      <TextInput
-        style={styles.input}
-        value={status}
-        onChangeText={setStatus}
-        placeholder="Enter status"
-      />
-        <Text style={styles.label}>Grand Total</Text>
+      >
+        <Picker.Item label="Select Customer" value="" />
+        {customers.map((customer) => (
+          <Picker.Item key={customer.name} label={customer.customer_name} value={customer.name} />
+        ))}
+      </Picker>
+
+      <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+        <Text style={styles.label}>Date</Text>
         <TextInput
-            style={styles.input}
-            value={grandTotal}
-            onChangeText={setGrandTotal}
-            placeholder="Enter grand total"
-            keyboardType="numeric"
+          style={styles.input}
+          value={date.toLocaleDateString()}
+          editable={false}
         />
-      {loading ? (
-        <ActivityIndicator size="large" color={theme.colors.primary[500]} />
-      ) : (
-        <Button title="Create Quotation" onPress={handleCreateQuotation} />
+      </TouchableOpacity>
+      {showDatePicker && (
+        <DateTimePicker
+          value={date}
+          mode="date"
+          display="default"
+          onChange={(event, selectedDate) => {
+            setShowDatePicker(false);
+            if (selectedDate) {
+              setDate(selectedDate);
+            }
+          }}
+        />
       )}
-    </View>
+
+      <TouchableOpacity onPress={() => setShowValidTillPicker(true)}>
+        <Text style={styles.label}>Valid Till</Text>
+        <TextInput
+          style={styles.input}
+          value={validTill.toLocaleDateString()}
+          editable={false}
+        />
+      </TouchableOpacity>
+      {showValidTillPicker && (
+        <DateTimePicker
+          value={validTill}
+          mode="date"
+          display="default"
+          onChange={(event, selectedDate) => {
+            setShowValidTillPicker(false);
+            if (selectedDate) {
+              setValidTill(selectedDate);
+            }
+          }}
+        />
+      )}
+
+      <Text style={styles.subHeader}>Items</Text>
+      <View style={styles.tableHeader}>
+        <Text style={styles.tableHeaderText}>Item</Text>
+        <Text style={styles.tableHeaderText}>Qty</Text>
+        <Text style={styles.tableHeaderText}>Rate</Text>
+        <Text style={styles.tableHeaderText}>Amount</Text>
+        <Text style={styles.tableHeaderText}></Text>
+      </View>
+      {items.map((item, index) => (
+        <View key={item.key} style={styles.tableRow}>
+          <Picker
+            selectedValue={item.item_code}
+            onValueChange={(itemValue) => handleItemChange(itemValue, index, 'item_code')}
+            style={styles.tableCell}
+          >
+            <Picker.Item label="Select Item" value="" />
+            {allItems.map((i) => (
+              <Picker.Item key={i.name} label={i.item_name} value={i.name} />
+            ))}
+          </Picker>
+          <TextInput
+            style={styles.tableCell}
+            placeholder="Qty"
+            keyboardType="numeric"
+            value={String(item.qty)}
+            onChangeText={(text) => handleItemChange(Number(text), index, 'qty')}
+          />
+          <TextInput
+            style={styles.tableCell}
+            placeholder="Rate"
+            keyboardType="numeric"
+            value={String(item.rate)}
+            editable={false}
+          />
+          <TextInput
+            style={styles.tableCell}
+            placeholder="Amount"
+            keyboardType="numeric"
+            value={String(item.amount)}
+            editable={false}
+          />
+          <TouchableOpacity onPress={() => removeItem(index)} style={styles.deleteButton}>
+            <Feather name="trash-2" size={24} color={theme.colors.error[500]} />
+          </TouchableOpacity>
+        </View>
+      ))}
+      <TouchableOpacity onPress={addNewItem} style={styles.addItemButton}>
+        <Feather name="plus" size={24} color={theme.colors.white} />
+        <Text style={styles.addItemButtonText}>Add New Item</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.subHeader}>Sales Taxes and Charges</Text>
+      <Picker
+        selectedValue={selectedSalesTaxesAndChargesTemplate}
+        onValueChange={(itemValue) => handleTemplateChange(itemValue)}
+        style={styles.input}
+      >
+        <Picker.Item label="Select Template" value="" />
+        {salesTaxesAndChargesTemplates.map((template) => (
+          <Picker.Item key={template.name} label={template.title} value={template.name} />
+        ))}
+      </Picker>
+
+      <View style={styles.tableHeader}>
+        <Text style={styles.tableHeaderText}>Type</Text>
+        <Text style={styles.tableHeaderText}>Tax Rate</Text>
+        <Text style={styles.tableHeaderText}>Amount</Text>
+        <Text style={styles.tableHeaderText}>Total</Text>
+      </View>
+      {taxes.map((tax, index) => (
+        <View key={index} style={styles.tableRow}>
+          <Text style={styles.tableCell}>{tax.type}</Text>
+          <Text style={styles.tableCell}>{tax.rate}%</Text>
+          <Text style={styles.tableCell}>{tax.amount}</Text>
+          <Text style={styles.tableCell}>{tax.total}</Text>
+        </View>
+      ))}
+
+      <View style={styles.totalsContainer}>
+        <Text style={styles.subTotal}>Subtotal: {calculateSubTotal()}</Text>
+        <Text style={styles.subTotal}>Total Taxes: {calculateTotalTaxes()}</Text>
+        <Text style={styles.grandTotal}>Grand Total: {calculateGrandTotal()}</Text>
+      </View>
+
+      {loading && <ActivityIndicator size="large" color={theme.colors.primary[500]} />}
+    </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -91,5 +367,77 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
     fontSize: 16,
+  },
+  subHeader: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  itemContainer: {
+    marginBottom: 16,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[300],
+    borderRadius: 8,
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.gray[300],
+  },
+  tableHeaderText: {
+    fontWeight: 'bold',
+    flex: 1,
+    textAlign: 'center',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.gray[200],
+  },
+  tableCell: {
+    flex: 1,
+    textAlign: 'center',
+  },
+  deleteButton: {
+    flex: 0.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addItemButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.primary[500],
+    padding: 10,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginVertical: 8,
+  },
+  addItemButtonText: {
+    color: theme.colors.white,
+    marginLeft: 8,
+    fontWeight: 'bold',
+  },
+  totalsContainer: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.gray[300],
+  },
+  subTotal: {
+    fontSize: 16,
+    textAlign: 'right',
+    marginBottom: 8,
+  },
+  grandTotal: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'right',
+    marginTop: 8,
   },
 });

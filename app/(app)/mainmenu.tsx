@@ -80,30 +80,34 @@ export default function MainMenu() {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Main Menu</Text>
+          <Text style={styles.headerSubtitle}>Select an option to continue</Text>
+        </View>
         <View style={styles.gridContainer}>
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={index}
-              style={[styles.card, { backgroundColor: item.color }]}
+              style={styles.card}
               onPress={() => router.push(item.route as any)}
             >
-              <View style={styles.cardContent}>
+              <View style={[styles.cardIcon, { backgroundColor: item.color }]}>
                 <Feather name={item.icon as any} size={32} color="white" />
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
               </View>
+              <Text style={styles.cardTitle}>{item.title}</Text>
+              <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
             </TouchableOpacity>
           ))}
         </View>
         
         <View style={styles.additionalButtons}>
           <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/home' as any)}>
-            <Feather name="home" size={20} color="white" />
+            <Feather name="home" size={20} color="#3B82F6" />
             <Text style={styles.secondaryButtonText}>Dashboard</Text>
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/check-in-out' as any)}>
-            <Feather name="clock" size={20} color="white" />
+            <Feather name="clock" size={20} color="#3B82F6" />
             <Text style={styles.secondaryButtonText}>Check In/Out</Text>
           </TouchableOpacity>
         </View>
@@ -115,56 +119,97 @@ export default function MainMenu() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5ca01',
+    backgroundColor: '#F3F4F6',
   },
   scrollView: {
     flex: 1,
-    paddingHorizontal: 20,
+  },
+  header: {
+    padding: 20,
+    paddingTop: 40,
+    backgroundColor: 'white',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    marginBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1F2937',
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginTop: 4,
   },
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    paddingHorizontal: 16,
   },
   card: {
     width: '48%',
-    height: 140,
+    backgroundColor: 'white',
     borderRadius: 16,
     marginBottom: 16,
     padding: 16,
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    height: 180,
   },
-  cardContent: {
-    flex: 1,
-    justifyContent: 'space-between',
+  cardIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: 'white',
-    marginTop: 8,
+    fontWeight: '600',
+    color: '#1F2937',
+    textAlign: 'center',
   },
   cardSubtitle: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: '#6B7280',
     marginTop: 4,
+    textAlign: 'center',
   },
   additionalButtons: {
-    marginBottom: 40,
+    paddingHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 30,
   },
   secondaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'white',
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   secondaryButtonText: {
-    color: 'white',
+    color: '#3B82F6',
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     marginLeft: 12,
   },
 });

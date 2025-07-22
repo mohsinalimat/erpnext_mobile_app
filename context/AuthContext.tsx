@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loginToERPNext } from '@/services/api';
 
 type User = {
@@ -41,9 +42,11 @@ const getStoredItem = async (key: string): Promise<string | null> => {
   try {
     if (Platform.OS === 'web') {
       return localStorage.getItem(key);
-    } else {
-      return await SecureStore.getItemAsync(key);
     }
+    if (key === 'user') {
+      return await AsyncStorage.getItem(key);
+    }
+    return await SecureStore.getItemAsync(key);
   } catch (error) {
     console.error(`Error getting stored item: ${key}`, error);
     return null;
@@ -54,6 +57,10 @@ const setStoredItem = async (key: string, value: string): Promise<void> => {
   try {
     if (Platform.OS === 'web') {
       localStorage.setItem(key, value);
+      return;
+    }
+    if (key === 'user') {
+      await AsyncStorage.setItem(key, value);
     } else {
       await SecureStore.setItemAsync(key, value);
     }
@@ -66,6 +73,10 @@ const removeStoredItem = async (key: string): Promise<void> => {
   try {
     if (Platform.OS === 'web') {
       localStorage.removeItem(key);
+      return;
+    }
+    if (key === 'user') {
+      await AsyncStorage.removeItem(key);
     } else {
       await SecureStore.deleteItemAsync(key);
     }

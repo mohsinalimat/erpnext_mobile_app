@@ -5,8 +5,6 @@ import { getQuotations } from '@/services/offline';
 import { useTheme } from '@/context/ThemeContext';
 import { useNetwork } from '@/context/NetworkContext';
 import { router, useFocusEffect } from 'expo-router';
-import MainLayout from '@/components/layout/MainLayout';
-
 interface Quotation {
   name: string;
   customer_name: string;
@@ -49,12 +47,8 @@ export default function QuotationScreen() {
     }, [isConnected])
   );
 
-  const handlePreview = (quotation: Quotation) => {
-    router.push(`/quotation-detail?id=${quotation.name}` as any);
-  };
-
   const handleDetail = (quotation: Quotation) => {
-    router.push(`/quotation-detail?id=${quotation.name}` as any);
+    router.push({ pathname: '/(app)/quotation-detail', params: { id: quotation.name } } as any);
   };
 
   const styles = useMemo(() => StyleSheet.create({
@@ -177,7 +171,7 @@ export default function QuotationScreen() {
   );
 
   return (
-    <MainLayout>
+    <View style={{ flex: 1 }}>
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
@@ -186,7 +180,7 @@ export default function QuotationScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-        <TouchableOpacity style={styles.addButton} onPress={() => router.push('/new-quotation')}>
+        <TouchableOpacity style={styles.addButton} onPress={() => router.push('/(app)/new-quotation')}>
           <Feather name="plus" size={24} color={theme.colors.white} />
         </TouchableOpacity>
       </View>
@@ -206,6 +200,6 @@ export default function QuotationScreen() {
           contentContainerStyle={styles.listContainer}
         />
       )}
-    </MainLayout>
+    </View>
   );
 }

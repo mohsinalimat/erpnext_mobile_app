@@ -1,7 +1,7 @@
 import { getCache, setCache } from './cache';
 import * as erpnext from './erpnext';
 import { getQueue, addToQueue, clearQueue } from './queue';
-import api from './api';
+import api, { postLocationData } from './api';
 
 export const syncQueue = async () => {
   const queue = await getQueue();
@@ -9,18 +9,46 @@ export const syncQueue = async () => {
     return;
   }
 
+  const failedRequests = [];
+
   for (const request of queue) {
     try {
-      await api.post(request.url, request.data);
+      switch (request.type) {
+        case 'location':
+          await postLocationData(request.payload);
+          break;
+        case 'createCustomer':
+          await erpnext.createCustomer(request.payload);
+          break;
+        case 'createItem':
+          await erpnext.createItem(request.payload);
+          break;
+        case 'createQuotation':
+          await erpnext.createQuotation(request.payload);
+          break;
+        case 'createSalesOrder':
+          await erpnext.createSalesOrder(request.payload);
+          break;
+        case 'createTask':
+          await erpnext.createTask(request.payload);
+          break;
+        // Add other cases for different request types here
+        default:
+          await api.post(request.url, { data: request.data });
+      }
     } catch (error) {
       console.error('Failed to sync request:', error);
-      // If a request fails, we should probably keep it in the queue
-      // and try again later. For now, we'll just log the error.
+      failedRequests.push(request);
     }
   }
 
   await clearQueue();
+  for (const request of failedRequests) {
+    await addToQueue(request);
+  }
 };
+
+setInterval(syncQueue, 300000); // Sync every 5 minutes
 
 export const getCustomers = async (isConnected: boolean, filters = [], fields = '["name", "customer_name", "customer_group", "territory", "customer_type"]') => {
   const cacheKey = `customers_${JSON.stringify(filters)}_${fields}`.replace(/[^a-zA-Z0-9._-]/g, '_');
@@ -100,8 +128,8 @@ export const getTasks = async (isConnected: boolean, filters = [], fields = '["n
 export const createCustomer = async (isConnected: boolean, customerData: any) => {
   if (!isConnected) {
     await addToQueue({
-      url: '/api/resource/Customer',
-      data: customerData,
+      type: 'createCustomer',
+      payload: customerData,
     });
     return { ...customerData, offline: true };
   }
@@ -112,8 +140,8 @@ export const createCustomer = async (isConnected: boolean, customerData: any) =>
 export const createItem = async (isConnected: boolean, itemData: any) => {
   if (!isConnected) {
     await addToQueue({
-      url: '/api/resource/Item',
-      data: itemData,
+      type: 'createItem',
+      payload: itemData,
     });
     return { ...itemData, offline: true };
   }
@@ -124,8 +152,8 @@ export const createItem = async (isConnected: boolean, itemData: any) => {
 export const createQuotation = async (isConnected: boolean, quotationData: any) => {
   if (!isConnected) {
     await addToQueue({
-      url: '/api/resource/Quotation',
-      data: quotationData,
+      type: 'createQuotation',
+      payload: quotationData,
     });
     return { ...quotationData, offline: true };
   }
@@ -136,8 +164,8 @@ export const createQuotation = async (isConnected: boolean, quotationData: any) 
 export const createSalesOrder = async (isConnected: boolean, salesOrderData: any) => {
   if (!isConnected) {
     await addToQueue({
-      url: '/api/resource/Sales Order',
-      data: salesOrderData,
+      type: 'createSalesOrder',
+      payload: salesOrderData,
     });
     return { ...salesOrderData, offline: true };
   }
@@ -148,8 +176,8 @@ export const createSalesOrder = async (isConnected: boolean, salesOrderData: any
 export const createTask = async (isConnected: boolean, taskData: any) => {
   if (!isConnected) {
     await addToQueue({
-      url: '/api/resource/Task',
-      data: taskData,
+      type: 'createTask',
+      payload: taskData,
     });
     return { ...taskData, offline: true };
   }

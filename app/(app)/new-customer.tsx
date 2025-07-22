@@ -3,7 +3,7 @@ import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert, To
 import { createCustomer } from '@/services/offline';
 import { useNetwork } from '@/context/NetworkContext';
 import { theme } from '@/constants/theme';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { fetchDocTypeData } from '@/services/api';
 import { Feather } from '@expo/vector-icons';
@@ -15,6 +15,7 @@ interface NameData {
 
 export default function NewCustomerScreen() {
   const { isConnected } = useNetwork();
+console.log('Rendering NewCustomerScreen', isConnected);
   const [customerName, setCustomerName] = useState('');
   const [customerType, setCustomerType] = useState(null);
   const [customerGroup, setCustomerGroup] = useState(null);
@@ -24,6 +25,7 @@ export default function NewCustomerScreen() {
   const [billingCurrency, setBillingCurrency] = useState('BDT');
   const [primaryContact, setPrimaryContact] = useState('');
   const [addresses, setAddresses] = useState<any[]>([]); // To store selected addresses
+  const params = useLocalSearchParams();
 
   const [loading, setLoading] = useState(false);
   const [dropdownLoading, setDropdownLoading] = useState(true);
@@ -81,6 +83,16 @@ export default function NewCustomerScreen() {
     fetchDropdownData();
   }, [fetchDropdownData]);
 
+  useEffect(() => {
+    if (params.selectedContact) {
+      setPrimaryContact(params.selectedContact as string);
+    }
+    if (params.selectedAddress) {
+      const newAddress = JSON.parse(params.selectedAddress as string);
+      setAddresses(prev => [...prev, newAddress]);
+    }
+  }, [params]);
+
   const handleCreateCustomer = async () => {
     if (isConnected === null) {
       Alert.alert('Error', 'Cannot create customer while network status is unknown.');
@@ -117,11 +129,17 @@ export default function NewCustomerScreen() {
   };
 
   const handleAddAddress = () => {
-    router.push('/(app)/address');
+    router.push({
+      pathname: '/(app)/address',
+      params: { from: '/(app)/new-customer' },
+    });
   };
 
   const handleAddContact = () => {
-    router.push('/(app)/contact');
+    router.push({
+      pathname: '/(app)/contact',
+      params: { from: '/(app)/new-customer' },
+    });
   };
 
   if (dropdownLoading) {

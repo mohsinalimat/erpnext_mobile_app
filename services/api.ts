@@ -290,15 +290,22 @@ export const getCheckIns = async (employeeId: string) => {
 };
 
 // Create a new check-in/out record
+const formatTimestampForERPNext = (isoTimestamp: string) => {
+  // Example input: '2025-07-22T17:39:49.926Z'
+  // Output: '2025-07-22 17:39:49'
+  return isoTimestamp.replace('T', ' ').replace('Z', '').split('.')[0];
+};
+
+// Create a new check-in/out record
 export const createCheckIn = async (data: { employee: string; log_type: 'IN' | 'OUT' }) => {
   try {
     const response = await api.post('/api/resource/Employee Checkin', {
       ...data,
-      timestamp: new Date().toISOString(),
+      timestamp: formatTimestampForERPNext(new Date().toISOString()),
     });
     return response.data.data;
-  } catch (error) {
-    console.error('Error creating check-in:', error);
+  } catch (error: any) {
+    console.error('Error creating check-in:', error.response?.data || error.message);
     throw error;
   }
 };
@@ -310,14 +317,24 @@ export const postLocationData = async (locationData: {
   timestamp: string;
 }) => {
   try {
-    console.log('Posting location data:', JSON.stringify(locationData, null, 2));
+    // Format timestamp correctly
+    const formattedTimestamp = formatTimestampForERPNext(locationData.timestamp);
+
+    const payload = {
+      ...locationData,
+      timestamp: formattedTimestamp,
+    };
+
+    console.log('Posting location data:', JSON.stringify(payload, null, 2));
+
     const response = await api.post('/api/resource/Mobile Location', {
-      data: locationData,
+      data: payload,
     });
+
     console.log('Location data posted successfully:', response.data);
     return response.data;
-  } catch (error) {
-    console.error('Error posting location data:', error);
+  } catch (error: any) {
+    console.error('Error posting location data:', error.response?.data || error.message);
     throw error;
   }
 };
@@ -341,10 +358,10 @@ export const fetchDocTypeData = async (doctype: string, fields: string[] = ['nam
 
 export const createDoc = async (doctype: string, doc: any) => {
   try {
-    const response = await api.post(`/api/resource/${doctype}`, doc);
+    const response = await api.post(`/api/resource/${doctype}`, { data: doc });
     return response.data.data;
-  } catch (error) {
-    console.error(`Error creating ${doctype}:`, error);
+  } catch (error: any) {
+    console.error(`Error creating ${doctype}:`, error.response?.data || error.message);
     throw error;
   }
 };

@@ -15,32 +15,32 @@ const navItems: NavItem[] = [
     name: 'home',
     icon: 'home',
     route: '/(app)/mainmenu',
-    label: 'Home'
+    label: 'Home',
   },
   {
     name: 'customers',
     icon: 'users',
-    route: '/customers',
-    label: 'Customers'
+    route: '/(app)/customers',
+    label: 'Customers',
   },
   {
     name: 'quotation',
     icon: 'file-text',
-    route: '/quotation',
-    label: 'Quotations'
+    route: '/(app)/quotation',
+    label: 'Quotations',
   },
   {
     name: 'sales-order',
     icon: 'shopping-cart',
-    route: '/sales-order',
-    label: 'Orders'
+    route: '/(app)/sales-order',
+    label: 'Orders',
   },
   {
     name: 'profile',
     icon: 'user',
-    route: '/profile',
-    label: 'Profile'
-  }
+    route: '/(app)/profile',
+    label: 'Profile',
+  },
 ];
 
 export default function BottomNavigation() {

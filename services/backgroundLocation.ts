@@ -4,8 +4,20 @@ import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setCache } from './cache';
 import { postLocationData } from './api';
+import { addToQueue } from './queue';
 
 const LOCATION_TASK_NAME = 'background-location-task';
+
+// Helper function to format date to YYYY-MM-DD HH:MM:SS
+const formatToMySQLDatetime = (date: Date) => {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const seconds = date.getSeconds().toString().padStart(2, '0');
+  return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+};
 
 TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
   if (error) {
@@ -26,7 +38,7 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
         user: userId,
         latitude: lastLocation.coords.latitude,
         longitude: lastLocation.coords.longitude,
-        timestamp: new Date(lastLocation.timestamp).toISOString(),
+        timestamp: formatToMySQLDatetime(new Date(lastLocation.timestamp)),
       };
 
       try {
@@ -35,7 +47,7 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
         console.log('Location data posted and cached:', locationPayload);
       } catch (apiError) {
         console.error('Failed to post location data:', apiError);
-        // Optionally, store failed attempts in a queue for later retry
+        await addToQueue({ type: 'location', payload: locationPayload });
       }
     } else if (!userId) {
       console.warn('User ID not found in AsyncStorage. Cannot post location data.');
@@ -52,7 +64,7 @@ export const startBackgroundLocationUpdates = async () => {
       if (!isTaskRegistered) {
         await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
           accuracy: Location.Accuracy.Balanced,
-          timeInterval: 300000, // Update every 5 minutes (adjust as needed)
+          timeInterval: 10000, // Update every 10 seconds
           distanceInterval: 100, // Update every 100 meters (adjust as needed)
           deferredUpdatesInterval: 5000, // Defer updates for 5 seconds to batch them
           showsBackgroundLocationIndicator: true, // Show indicator on iOS

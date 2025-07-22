@@ -5,8 +5,6 @@ import { getCustomers } from '@/services/offline';
 import { useTheme } from '@/context/ThemeContext';
 import { useNetwork } from '@/context/NetworkContext';
 import { router } from 'expo-router';
-import MainLayout from '@/components/layout/MainLayout';
-
 export default function CustomersScreen() {
   const { theme } = useTheme();
   const { isConnected } = useNetwork();
@@ -105,7 +103,7 @@ export default function CustomersScreen() {
   }
 
   const renderItem = ({ item }: { item: any }) => (
-    <Pressable onPress={() => router.push({ pathname: '/customer-preview', params: { id: item.name } } as any)}>
+    <Pressable onPress={() => router.push({ pathname: '/(app)/customer-preview', params: { id: item.name } } as any)}>
       <View style={[styles.itemContainer, { backgroundColor: theme.colors.white }]}>
         <Text style={[styles.itemTitle, { color: theme.colors.text.primary }]}>{item.customer_name || item.name}</Text>
         <Text style={{ color: theme.colors.text.secondary }}>Group: {item.customer_group}</Text>
@@ -114,7 +112,7 @@ export default function CustomersScreen() {
   );
 
   return (
-    <MainLayout>
+    <View style={{ flex: 1 }}>
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
@@ -123,7 +121,7 @@ export default function CustomersScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-        <TouchableOpacity style={styles.addButton} onPress={() => router.push('/new-customer')}>
+        <TouchableOpacity style={styles.addButton} onPress={() => router.push('/(app)/new-customer')}>
           <Feather name="plus" size={24} color={theme.colors.white} />
         </TouchableOpacity>
       </View>
@@ -143,6 +141,6 @@ export default function CustomersScreen() {
           contentContainerStyle={styles.listContainer}
         />
       )}
-    </MainLayout>
+    </View>
   );
 }

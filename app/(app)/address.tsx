@@ -2,12 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { fetchDocTypeData } from '@/services/api';
 import { theme } from '@/constants/theme';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 
 export default function AddressScreen() {
   const [addresses, setAddresses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const params = useLocalSearchParams();
+  const fromNewCustomer = params.from === '/(app)/new-customer';
 
   const fetchAddresses = async () => {
     try {
@@ -33,13 +35,24 @@ export default function AddressScreen() {
     }, [])
   );
 
+  const handleSelectAddress = (address: any) => {
+    if (fromNewCustomer) {
+      router.push({
+        pathname: '/(app)/new-customer',
+        params: { selectedAddress: JSON.stringify(address) },
+      });
+    }
+  };
+
   const renderItem = ({ item }: { item: any }) => (
-    <View style={styles.itemContainer}>
-      <Text style={styles.itemTitle}>{item.address_line1}</Text>
-      <Text style={styles.itemSubtitle}>
-        {item.city}, {item.state}, {item.country}
-      </Text>
-    </View>
+    <TouchableOpacity onPress={() => handleSelectAddress(item)} disabled={!fromNewCustomer}>
+      <View style={styles.itemContainer}>
+        <Text style={styles.itemTitle}>{item.address_line1}</Text>
+        <Text style={styles.itemSubtitle}>
+          {item.city}, {item.state}, {item.country}
+        </Text>
+      </View>
+    </TouchableOpacity>
   );
 
   if (loading) {

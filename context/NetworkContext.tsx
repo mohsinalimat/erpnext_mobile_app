@@ -27,6 +27,7 @@ export const NetworkProvider: React.FC<{children: React.ReactNode}> = ({ childre
   }, []);
 
   useEffect(() => {
+    console.log('useNetwork state changed', isConnected);
     if (wasConnected.current === false && isConnected === true) {
       syncQueue();
     }

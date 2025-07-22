@@ -42,7 +42,7 @@ export const getCustomers = async (filters = [], fields = '["name", "customer_na
 
 export const createCustomer = async (customerData: any) => {
   try {
-    const response = await api.post('/api/resource/Customer', customerData);
+    const response = await api.post('/api/resource/Customer', { data: customerData });
     return response.data.data;
   } catch (error: any) {
     console.error('Failed to create customer:', error.response?.data || error.message);
@@ -56,6 +56,42 @@ export const getCustomerByName = async (name: string) => {
     return response.data.data;
   } catch (error: any) {
     console.error(`Failed to fetch customer ${name}:`, error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const getCustomerContacts = async (customer: string) => {
+  try {
+    const response = await api.get('/api/resource/Contact', {
+      params: {
+        fields: '["name", "first_name", "last_name"]',
+        filters: JSON.stringify([
+          ["link_doctype", "=", "Customer"],
+          ["link_name", "=", customer]
+        ]),
+      },
+    });
+    return response.data.data;
+  } catch (error: any) {
+    console.error(`Failed to fetch contacts for customer ${customer}:`, error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const getCustomerAddresses = async (customer: string) => {
+  try {
+    const response = await api.get('/api/resource/Address', {
+      params: {
+        fields: '["name", "address_line1", "city"]',
+        filters: JSON.stringify([
+          ["link_doctype", "=", "Customer"],
+          ["link_name", "=", customer]
+        ]),
+      },
+    });
+    return response.data.data;
+  } catch (error: any) {
+    console.error(`Failed to fetch addresses for customer ${customer}:`, error.response?.data || error.message);
     throw error;
   }
 };
@@ -84,7 +120,7 @@ export const getItems = async (filters = [], fields = '["name", "item_name", "it
 
 export const createItem = async (itemData: any) => {
   try {
-    const response = await api.post('/api/resource/Item', itemData);
+    const response = await api.post('/api/resource/Item', { data: itemData });
     return response.data.data;
   } catch (error: any) {
     console.error('Failed to create item:', error.response?.data || error.message);
@@ -148,7 +184,7 @@ export const getQuotations = async (filters = [], fields = '["name", "customer_n
 
 export const createQuotation = async (quotationData: any) => {
   try {
-    const response = await api.post('/api/resource/Quotation', quotationData);
+    const response = await api.post('/api/resource/Quotation', { data: quotationData });
     return response.data.data;
   } catch (error: any) {
     console.error('Failed to create quotation:', error.response?.data || error.message);
@@ -243,7 +279,7 @@ export const getSalesOrders = async (filters = [], fields = '["name", "transacti
 
 export const createSalesOrder = async (salesOrderData: any) => {
   try {
-    const response = await api.post('/api/resource/Sales Order', salesOrderData);
+    const response = await api.post('/api/resource/Sales Order', { data: salesOrderData });
     return response.data.data;
   } catch (error: any) {
     console.error('Failed to create sales order:', error.response?.data || error.message);
@@ -306,7 +342,7 @@ export const getTasks = async (filters = [], fields = '["name", "subject", "stat
 
 export const createTask = async (taskData: any) => {
   try {
-    const response = await api.post('/api/resource/Task', taskData);
+    const response = await api.post('/api/resource/Task', { data: taskData });
     return response.data.data;
   } catch (error: any) {
     console.error('Failed to create task:', error.response?.data || error.message);

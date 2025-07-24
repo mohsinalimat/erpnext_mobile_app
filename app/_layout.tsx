@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+import { Alert } from 'react-native';
+import * as Updates from 'expo-updates';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
@@ -36,6 +38,29 @@ export default function RootLayout() {
   useFrameworkReady();
 
   useEffect(() => {
+    async function checkForUpdates() {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          Alert.alert(
+            'Update Available',
+            'A new version of the app is available. Restart to apply the update.',
+            [
+              {
+                text: 'Restart',
+                onPress: () => Updates.reloadAsync(),
+              },
+            ]
+          );
+        }
+      } catch (error) {
+        console.error('Error checking for updates:', error);
+      }
+    }
+
+    checkForUpdates();
+
     // Start background location updates when the app is ready
     startBackgroundLocationUpdates();
 

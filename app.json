@@ -25,6 +25,7 @@
     "android": {
       "package": "com.primetechbd.primeerp",
       "permissions": [
+        "android.permission.INTERNET",
         "android.permission.INTERNET"
       ]
     },
@@ -33,11 +34,15 @@
       "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
+    "updates": {
+      "url": "https://u.expo.dev/e9f29a80-2831-459a-905e-0aee547d8c75"
+    },
     "plugins": [
       "expo-router",
       "expo-font",
       "expo-web-browser",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-updates"
     ],
     "experiments": {
       "typedRoutes": true
@@ -48,6 +53,9 @@
         "projectId": "e9f29a80-2831-459a-905e-0aee547d8c75"
       }
     },
-    "owner": "primetechbd"
+    "owner": "primetechbd",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }

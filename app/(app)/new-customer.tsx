@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useLayoutEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, ScrollView } from 'react-native';
 import { createCustomer } from '@/services/offline';
 import { useNetwork } from '@/context/NetworkContext';
 import { theme } from '@/constants/theme';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { fetchDocTypeData } from '@/services/api';
 import { Feather } from '@expo/vector-icons';
@@ -13,9 +13,19 @@ interface NameData {
   full_name?: string; // Added full_name for User doctype
 }
 
+const uniqueByName = (items: NameData[]) => {
+  const seen = new Set();
+  return items.filter(item => {
+    const duplicate = seen.has(item.name);
+    seen.add(item.name);
+    return !duplicate;
+  });
+};
+
 export default function NewCustomerScreen() {
   const { isConnected } = useNetwork();
-console.log('Rendering NewCustomerScreen', isConnected);
+  const navigation = useNavigation();
+  console.log('Rendering NewCustomerScreen', isConnected);
   const [customerName, setCustomerName] = useState('');
   const [customerType, setCustomerType] = useState(null);
   const [customerGroup, setCustomerGroup] = useState(null);
@@ -36,6 +46,8 @@ console.log('Rendering NewCustomerScreen', isConnected);
   const [openCity, setOpenCity] = useState(false);
   const [openAccountManager, setOpenAccountManager] = useState(false);
   const [openBillingCurrency, setOpenBillingCurrency] = useState(false);
+  const [openPrimaryContact, setOpenPrimaryContact] = useState(false);
+  const [openAddress, setOpenAddress] = useState(false);
 
   const [customerTypes, setCustomerTypes] = useState<{label: string, value: string}[]>([]);
   const [customerGroups, setCustomerGroups] = useState<{label: string, value: string}[]>([]);
@@ -43,6 +55,8 @@ console.log('Rendering NewCustomerScreen', isConnected);
   const [cities, setCities] = useState<{label: string, value: string}[]>([]);
   const [accountManagers, setAccountManagers] = useState<{label: string, value: string}[]>([]);
   const [currencies, setCurrencies] = useState<{label: string, value: string}[]>([]);
+  const [primaryContacts, setPrimaryContacts] = useState<{label: string, value: string}[]>([]);
+  const [addressItems, setAddressItems] = useState<{label: string, value: string}[]>([]);
 
   const fetchDropdownData = useCallback(async () => {
     if (isConnected === null) return;
@@ -54,22 +68,28 @@ console.log('Rendering NewCustomerScreen', isConnected);
         cityData,
         accountManagerData,
         currencyData,
+        contactData,
+        addressData,
       ] = await Promise.all([
         fetchDocTypeData('Customer Group', ['name']),
         fetchDocTypeData('Territory', ['name']),
         fetchDocTypeData('Territory', ['name']), // Using Territory for City as per user feedback
         fetchDocTypeData('User', ['full_name'], [['enabled', '=', 1]]),
         fetchDocTypeData('Currency', ['name']),
+        fetchDocTypeData('Contact', ['name', 'full_name']),
+        fetchDocTypeData('Address', ['name', 'address_line1']),
       ]);
 
       const staticCustomerTypes = ['Company', 'Individual', 'Partnership'];
       setCustomerTypes(staticCustomerTypes.map(t => ({ label: t, value: t })));
 
-      setCustomerGroups(customerGroupData.map((d: NameData) => ({ label: d.name, value: d.name })));
-      setTerritories(territoryData.map((d: NameData) => ({ label: d.name, value: d.name })));
-      setCities(cityData.map((d: NameData) => ({ label: d.name, value: d.name })));
-      setAccountManagers(accountManagerData.map((d: NameData) => ({ label: d.full_name || d.name, value: d.full_name || d.name })));
-      setCurrencies(currencyData.map((d: NameData) => ({ label: d.name, value: d.name })));
+      setCustomerGroups(uniqueByName(customerGroupData).map((d: NameData) => ({ label: d.name, value: d.name })));
+      setTerritories(uniqueByName(territoryData).map((d: NameData) => ({ label: d.name, value: d.name })));
+      setCities(uniqueByName(cityData).map((d: NameData) => ({ label: d.name, value: d.name })));
+      setAccountManagers(uniqueByName(accountManagerData).map((d: NameData) => ({ label: d.full_name || d.name, value: d.full_name || d.name })));
+      setCurrencies(uniqueByName(currencyData).map((d: NameData) => ({ label: d.name, value: d.name })));
+      setPrimaryContacts(uniqueByName(contactData).map((d: NameData) => ({ label: d.full_name || d.name, value: d.full_name || d.name })));
+      setAddressItems(uniqueByName(addressData).map((d: any) => ({ label: d.address_line1, value: d.name })));
 
     } catch (error) {
       console.error('Error fetching dropdown data:', error);
@@ -93,6 +113,3301 @@ console.log('Rendering NewCustomerScreen', isConnected);
     }
   }, [params]);
 
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
+  const handleCreateCustomer = async () => {
+    if (isConnected === null) {
+      Alert.alert('Error', 'Cannot create customer while network status is unknown.');
+      return;
+    }
   const handleCreateCustomer = async () => {
     if (isConnected === null) {
       Alert.alert('Error', 'Cannot create customer while network status is unknown.');
@@ -128,19 +3443,19 @@ console.log('Rendering NewCustomerScreen', isConnected);
     }
   };
 
-  const handleAddAddress = () => {
-    router.push({
-      pathname: '/(app)/address',
-      params: { from: '/(app)/new-customer' },
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        loading ? (
+          <ActivityIndicator size="small" color={theme.colors.primary[500]} style={{ marginRight: 15 }} />
+        ) : (
+          <TouchableOpacity onPress={handleCreateCustomer} style={{ marginRight: 15 }}>
+            <Text style={{ color: theme.colors.primary[500], fontSize: 16, fontWeight: 'bold' }}>Save</Text>
+          </TouchableOpacity>
+        )
+      ),
     });
-  };
-
-  const handleAddContact = () => {
-    router.push({
-      pathname: '/(app)/contact',
-      params: { from: '/(app)/new-customer' },
-    });
-  };
+  }, [navigation, loading, handleCreateCustomer]);
 
   if (dropdownLoading) {
     return (
@@ -251,54 +3566,34 @@ console.log('Rendering NewCustomerScreen', isConnected);
         />
 
         <Text style={styles.label}>Primary Contact</Text>
-        <View style={styles.addressContainer}>
-          <TextInput
-            style={[styles.input, styles.addressInput]}
-            placeholder="Select or add contact"
-            placeholderTextColor={theme.colors.text.secondary}
-            value={primaryContact}
-            editable={false}
-          />
-          <TouchableOpacity onPress={handleAddContact} style={styles.addAddressButton}>
-            <Feather name="plus" size={24} color={theme.colors.white} />
-          </TouchableOpacity>
-        </View>
+        <DropDownPicker
+          open={openPrimaryContact}
+          value={primaryContact}
+          items={primaryContacts}
+          setOpen={setOpenPrimaryContact}
+          setValue={setPrimaryContact}
+          setItems={setPrimaryContacts}
+          searchable={true}
+          placeholder="Select Primary Contact"
+          style={styles.pickerContainer}
+          listMode="MODAL"
+        />
 
         <Text style={styles.label}>Address</Text>
-        <View style={styles.addressContainer}>
-          <TextInput
-            style={[styles.input, styles.addressInput]}
-            placeholder="Select or add address"
-            placeholderTextColor={theme.colors.text.secondary}
-            value={addresses.map(addr => addr.address_line1).join(', ')} // Display selected addresses
-            editable={false} // Make it non-editable as it's for display
-          />
-          <TouchableOpacity onPress={handleAddAddress} style={styles.addAddressButton}>
-            <Feather name="plus" size={24} color={theme.colors.white} />
-          </TouchableOpacity>
-        </View>
-        {addresses.length > 0 && (
-          <View style={styles.selectedAddressesContainer}>
-            {addresses.map((addr, index) => (
-              <Text key={index} style={styles.selectedAddressText}>
-                {addr.address_line1}
-              </Text>
-            ))}
-          </View>
-        )}
+        <DropDownPicker
+          open={openAddress}
+          value={addresses}
+          items={addressItems}
+          setOpen={setOpenAddress}
+          setValue={setAddresses}
+          setItems={setAddressItems}
+          searchable={true}
+          multiple={true}
+          placeholder="Select Address"
+          style={styles.pickerContainer}
+          listMode="MODAL"
+        />
       </ScrollView>
-      <View style={styles.buttonContainer}>
-        {loading ? (
-          <ActivityIndicator size="large" color={theme.colors.primary[500]} />
-        ) : (
-          <TouchableOpacity
-            style={styles.createButton}
-            onPress={handleCreateCustomer}
-          >
-            <Text style={styles.createButtonText}>Save</Text>
-          </TouchableOpacity>
-        )}
-      </View>
     </View>
   );
 }

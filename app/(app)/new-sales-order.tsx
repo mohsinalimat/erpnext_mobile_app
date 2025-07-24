@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useLayoutEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert, ScrollView, Modal, FlatList, TouchableOpacity, Platform } from 'react-native';
 import { getItems, getCustomers } from '@/services/offline';
 import { getItemPrice } from '@/services/erpnext';
 import { useTheme } from '@/context/ThemeContext';
 import { useNetwork } from '@/context/NetworkContext';
-import { router } from 'expo-router';
+import { router, useNavigation } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function NewSalesOrderScreen() {
     const { theme } = useTheme();
+    const navigation = useNavigation();
     const { isConnected } = useNetwork();
     const [customer, setCustomer] = useState('');
     const [customerName, setCustomerName] = useState('Select Customer');
@@ -83,7 +84,7 @@ export default function NewSalesOrderScreen() {
         setShowDatePicker(true);
     };
 
-    const handlePreview = () => {
+    const handleSave = () => {
         if (!customer || !date || !deliveryDate) {
             Alert.alert('Error', 'Please fill all required fields.');
             return;
@@ -249,6 +250,16 @@ export default function NewSalesOrderScreen() {
         },
     });
 
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <TouchableOpacity onPress={handleSave} style={{ marginRight: 15 }}>
+                    <Text style={{ color: theme.colors.primary[500], fontSize: 16, fontWeight: 'bold' }}>Save</Text>
+                </TouchableOpacity>
+            ),
+        });
+    }, [navigation, handleSave]);
+
     return (
         <ScrollView style={styles.container}>
             <Text style={styles.label}>Customer</Text>
@@ -305,14 +316,6 @@ export default function NewSalesOrderScreen() {
                 </View>
             ))}
             <Button title="Add Item" onPress={addItem} />
-
-            {loading ? (
-                <ActivityIndicator size="large" color={theme.colors.primary[500]} style={{ marginTop: 16 }} />
-            ) : (
-                <TouchableOpacity onPress={handlePreview} style={styles.saveButton}>
-                    <Text style={styles.saveButtonText}>Preview</Text>
-                </TouchableOpacity>
-            )}
 
             {showDatePicker && (
                 <DateTimePicker

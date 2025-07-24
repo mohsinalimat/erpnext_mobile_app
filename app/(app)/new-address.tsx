@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { theme } from '@/constants/theme';
-import { router } from 'expo-router';
+import { router, useNavigation } from 'expo-router';
 import { createDoc } from '@/services/api';
 
 export default function NewAddressScreen() {
+  const navigation = useNavigation();
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
   const [city, setCity] = useState('');
@@ -35,6 +36,16 @@ export default function NewAddressScreen() {
       setLoading(false);
     }
   };
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={handleSaveAddress} disabled={loading} style={{ marginRight: 15 }}>
+          <Text style={{ color: theme.colors.primary[500], fontSize: 16, fontWeight: 'bold' }}>{loading ? 'Saving...' : 'Save'}</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, loading, handleSaveAddress]);
 
   return (
     <View style={styles.container}>
@@ -78,17 +89,9 @@ export default function NewAddressScreen() {
         placeholder="Enter country"
         placeholderTextColor={theme.colors.text.secondary}
       />
-      <TouchableOpacity
-        style={styles.saveButton}
-        onPress={handleSaveAddress}
-        disabled={loading}
-      >
-        <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save'}</Text>
-      </TouchableOpacity>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

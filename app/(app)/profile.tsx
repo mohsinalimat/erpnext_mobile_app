@@ -12,8 +12,6 @@ import {
   Hash,
   PersonStanding,
 } from 'lucide-react-native';
-import MainLayout from '@/components/layout/MainLayout';
-
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
   const { translations } = useLanguage();
@@ -27,7 +25,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <MainLayout>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Image
           source={{ uri: `https://i.pravatar.cc/150?u=${user.email}` }}
@@ -68,7 +66,7 @@ export default function ProfileScreen() {
         <LogOut size={20} color={theme.colors.white} />
         <Text style={styles.logoutButtonText}>{translations.logout}</Text>
       </TouchableOpacity>
-    </MainLayout>
+    </View>
   );
 }
 

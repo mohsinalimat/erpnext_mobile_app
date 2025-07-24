@@ -50,12 +50,30 @@ export default function ContactScreen() {
   const renderItem = ({ item }: { item: any }) => (
     <TouchableOpacity onPress={() => handleSelectContact(item)} disabled={!fromNewCustomer}>
       <View style={styles.itemContainer}>
-        <Text style={styles.itemTitle}>{item.first_name} {item.last_name}</Text>
-        <Text style={styles.itemSubtitle}>{item.designation}</Text>
-        <Text style={styles.itemSubtitle}>{item.gender}</Text>
-        <Text style={styles.itemSubtitle}>{item.company_name}</Text>
-        <Text style={styles.itemSubtitle}>{item.email_id}</Text>
-        <Text style={styles.itemSubtitle}>{item.mobile_no}</Text>
+        <View style={styles.itemHeader}>
+          <Feather name="user" size={24} color={theme.colors.primary[500]} />
+          <Text style={styles.itemTitle}>{item.first_name} {item.last_name}</Text>
+        </View>
+        <View style={styles.itemRow}>
+          <Feather name="briefcase" size={16} color={theme.colors.text.secondary} />
+          <Text style={styles.itemSubtitle}>{item.designation}</Text>
+        </View>
+        <View style={styles.itemRow}>
+          <Feather name="info" size={16} color={theme.colors.text.secondary} />
+          <Text style={styles.itemSubtitle}>{item.gender}</Text>
+        </View>
+        <View style={styles.itemRow}>
+          <Feather name="grid" size={16} color={theme.colors.text.secondary} />
+          <Text style={styles.itemSubtitle}>{item.company_name}</Text>
+        </View>
+        <View style={styles.itemRow}>
+          <Feather name="mail" size={16} color={theme.colors.text.secondary} />
+          <Text style={styles.itemSubtitle}>{item.email_id}</Text>
+        </View>
+        <View style={styles.itemRow}>
+          <Feather name="phone" size={16} color={theme.colors.text.secondary} />
+          <Text style={styles.itemSubtitle}>{item.mobile_no}</Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -82,12 +100,18 @@ export default function ContactScreen() {
         value={searchQuery}
         onChangeText={setSearchQuery}
       />
-      <FlatList
-        data={filteredContacts}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.name}
-        contentContainerStyle={styles.listContainer}
-      />
+      {filteredContacts.length > 0 ? (
+        <FlatList
+          data={filteredContacts}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.name}
+          contentContainerStyle={styles.listContainer}
+        />
+      ) : (
+        <View style={styles.center}>
+          <Text>No contacts found.</Text>
+        </View>
+      )}
       <TouchableOpacity
         style={styles.createButton}
         onPress={() => router.push('/(app)/new-contact')}
@@ -125,15 +149,32 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.22,
+    shadowRadius: 2.22,
+    elevation: 3,
+  },
+  itemHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   itemTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: theme.colors.text.primary,
+    marginLeft: 8,
+  },
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
   },
   itemSubtitle: {
     fontSize: 14,
     color: theme.colors.text.secondary,
+    marginLeft: 8,
   },
   createButton: {
     position: 'absolute',

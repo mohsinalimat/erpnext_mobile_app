@@ -11,7 +11,7 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import { NetworkProvider } from '../context/NetworkContext';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { Slot, Redirect, Stack, useRouter } from 'expo-router';
-import { startBackgroundLocationUpdates, stopBackgroundLocationUpdates } from '@/services/backgroundLocation';
+import { startBackgroundLocation, stopBackgroundLocation } from '@/services/backgroundLocation';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -39,34 +39,36 @@ export default function RootLayout() {
 
   useEffect(() => {
     async function checkForUpdates() {
-      try {
-        const update = await Updates.checkForUpdateAsync();
-        if (update.isAvailable) {
-          await Updates.fetchUpdateAsync();
-          Alert.alert(
-            'Update Available',
-            'A new version of the app is available. Restart to apply the update.',
-            [
-              {
-                text: 'Restart',
-                onPress: () => Updates.reloadAsync(),
-              },
-            ]
-          );
+      if (!__DEV__) {
+        try {
+          const update = await Updates.checkForUpdateAsync();
+          if (update.isAvailable) {
+            await Updates.fetchUpdateAsync();
+            Alert.alert(
+              'Update Available',
+              'A new version of the app is available. Restart to apply the update.',
+              [
+                {
+                  text: 'Restart',
+                  onPress: () => Updates.reloadAsync(),
+                },
+              ]
+            );
+          }
+        } catch (error) {
+          console.error('Error checking for updates:', error);
         }
-      } catch (error) {
-        console.error('Error checking for updates:', error);
       }
     }
 
     checkForUpdates();
 
     // Start background location updates when the app is ready
-    startBackgroundLocationUpdates();
+    startBackgroundLocation();
 
     // Optional: Stop background location updates when the component unmounts
     return () => {
-      stopBackgroundLocationUpdates();
+      stopBackgroundLocation();
     };
   }, []);
 

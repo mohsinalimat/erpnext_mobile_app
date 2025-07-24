@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_KEY, API_SECRET, ERPNEXT_SERVER_URL } from './config';
+import { formatToMySQLDatetime } from './datetime';
 
 // Create axios instance
 const api = axios.create({
@@ -317,12 +318,36 @@ export const postLocationData = async (locationData: {
   timestamp: string;
 }) => {
   try {
-    // Format timestamp correctly
-    const formattedTimestamp = formatTimestampForERPNext(locationData.timestamp);
+    // The incoming timestamp can be in 'DD-MM-YYYY HH:mm:ss' format.
+    // This is a workaround to handle the incorrect format.
+    const parts = locationData.timestamp.split(' ');
+    let correctlyFormattedTimestamp = locationData.timestamp;
+
+    if (parts.length === 2 && parts[0].includes('-')) {
+      const dateParts = parts[0].split('-');
+      if (dateParts.length === 3) {
+        const timeParts = parts[1].split(':');
+        if (timeParts.length === 3) {
+          // It's likely in DD-MM-YYYY format, let's parse it
+          const dateObject = new Date(
+            parseInt(dateParts[2]),
+            parseInt(dateParts[1]) - 1,
+            parseInt(dateParts[0]),
+            parseInt(timeParts[0]),
+            parseInt(timeParts[1]),
+            parseInt(timeParts[2])
+          );
+          correctlyFormattedTimestamp = formatToMySQLDatetime(dateObject);
+        }
+      }
+    } else {
+      // Assume it's already in a good format (e.g., ISO string)
+      correctlyFormattedTimestamp = formatTimestampForERPNext(locationData.timestamp);
+    }
 
     const payload = {
       ...locationData,
-      timestamp: formattedTimestamp,
+      timestamp: correctlyFormattedTimestamp,
     };
 
     console.log('Posting location data:', JSON.stringify(payload, null, 2));

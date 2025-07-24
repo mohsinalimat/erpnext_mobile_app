@@ -14,7 +14,6 @@ import DashboardChart from '@/components/dashboard/DashboardChart';
 import AlertCard from '@/components/dashboard/AlertCard';
 import { fetchDashboardData } from '@/services/api';
 import { Clock, CreditCard, ShoppingCart, Users } from 'lucide-react-native';
-import MainLayout from '@/components/layout/MainLayout';
 
 interface DashboardData {
   salesTotal: number;
@@ -68,97 +67,95 @@ export default function DashboardScreen() {
   }
 
   return (
-    <MainLayout>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-      <View style={styles.headerSection}>
-        <Text style={styles.welcomeText}>Hello, {user?.name || 'User'}</Text>
-        <Text style={styles.dateText}>
-          {new Date().toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
-        </Text>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
+    <View style={styles.headerSection}>
+      <Text style={styles.welcomeText}>Hello, {user?.name || 'User'}</Text>
+      <Text style={styles.dateText}>
+        {new Date().toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })}
+      </Text>
+    </View>
+
+    <View style={styles.cardsContainer}>
+      <View style={styles.cardRow}>
+        <DashboardCard
+          title="Sales"
+          value={`৳${dashboardData.salesTotal.toLocaleString()}`}
+          icon={<CreditCard color={theme.colors.primary[500]} size={24} />}
+          color={theme.colors.primary[500]}
+          containerStyle={{ flex: 1, marginRight: 8 }}
+        />
+        <DashboardCard
+          title="New Customers"
+          value={dashboardData.newCustomers.toString()}
+          icon={<Users color={theme.colors.secondary[500]} size={24} />}
+          color={theme.colors.secondary[500]}
+          containerStyle={{ flex: 1, marginLeft: 8 }}
+        />
       </View>
 
-      <View style={styles.cardsContainer}>
-        <View style={styles.cardRow}>
-          <DashboardCard
-            title="Sales"
-            value={`৳${dashboardData.salesTotal.toLocaleString()}`}
-            icon={<CreditCard color={theme.colors.primary[500]} size={24} />}
-            color={theme.colors.primary[500]}
-            containerStyle={{ flex: 1, marginRight: 8 }}
-          />
-          <DashboardCard
-            title="New Customers"
-            value={dashboardData.newCustomers.toString()}
-            icon={<Users color={theme.colors.secondary[500]} size={24} />}
-            color={theme.colors.secondary[500]}
-            containerStyle={{ flex: 1, marginLeft: 8 }}
-          />
-        </View>
-
-        <View style={styles.cardRow}>
-          <DashboardCard
-            title="Open Orders"
-            value={dashboardData.openOrders.toString()}
-            icon={<ShoppingCart color={theme.colors.tertiary[500]} size={24} />}
-            color={theme.colors.tertiary[500]}
-            containerStyle={{ flex: 1, marginRight: 8 }}
-          />
-          <DashboardCard
-            title="Pending Tasks"
-            value={dashboardData.pendingTasks.toString()}
-            icon={<Clock color={theme.colors.error[500]} size={24} />}
-            color={theme.colors.error[500]}
-            containerStyle={{ flex: 1, marginLeft: 8 }}
-          />
-        </View>
+      <View style={styles.cardRow}>
+        <DashboardCard
+          title="Open Orders"
+          value={dashboardData.openOrders.toString()}
+          icon={<ShoppingCart color={theme.colors.tertiary[500]} size={24} />}
+          color={theme.colors.tertiary[500]}
+          containerStyle={{ flex: 1, marginRight: 8 }}
+        />
+        <DashboardCard
+          title="Pending Tasks"
+          value={dashboardData.pendingTasks.toString()}
+          icon={<Clock color={theme.colors.error[500]} size={24} />}
+          color={theme.colors.error[500]}
+          containerStyle={{ flex: 1, marginLeft: 8 }}
+        />
       </View>
+    </View>
 
-      {dashboardData.alerts.length > 0 && (
-        <View style={styles.alertsSection}>
-          <Text style={styles.sectionTitle}>Alerts</Text>
-          {dashboardData.alerts.map((alert, index) => (
-            <AlertCard key={index} title={alert.title} message={alert.message} type={alert.type} />
-          ))}
-        </View>
-      )}
-
-      <View style={styles.chartsSection}>
-        <Text style={styles.sectionTitle}>Sales Overview</Text>
-        <DashboardChart />
+    {dashboardData.alerts.length > 0 && (
+      <View style={styles.alertsSection}>
+        <Text style={styles.sectionTitle}>Alerts</Text>
+        {dashboardData.alerts.map((alert, index) => (
+          <AlertCard key={index} title={alert.title} message={alert.message} type={alert.type} />
+        ))}
       </View>
+    )}
 
-      <View style={styles.recentSection}>
-        <Text style={styles.sectionTitle}>Recent Activity</Text>
-        {dashboardData.recentSales.length === 0 ? (
-          <Text style={styles.emptyText}>No recent activities</Text>
-        ) : (
-          dashboardData.recentSales.map((sale, index) => (
-            <View key={index} style={styles.recentItem}>
-              <View style={styles.recentItemIcon}>
-                <CreditCard size={16} color={theme.colors.white} />
-              </View>
-              <View style={styles.recentItemContent}>
-                <Text style={styles.recentItemTitle}>{sale.customer}</Text>
-                <Text style={styles.recentItemSubtitle}>{sale.description}</Text>
-              </View>
-              <Text style={styles.recentItemAmount}>৳{sale.amount.toLocaleString()}</Text>
+    <View style={styles.chartsSection}>
+      <Text style={styles.sectionTitle}>Sales Overview</Text>
+      <DashboardChart />
+    </View>
+
+    <View style={styles.recentSection}>
+      <Text style={styles.sectionTitle}>Recent Activity</Text>
+      {dashboardData.recentSales.length === 0 ? (
+        <Text style={styles.emptyText}>No recent activities</Text>
+      ) : (
+        dashboardData.recentSales.map((sale, index) => (
+          <View key={index} style={styles.recentItem}>
+            <View style={styles.recentItemIcon}>
+              <CreditCard size={16} color={theme.colors.white} />
             </View>
-          ))
-        )}
-      </View>
-      </ScrollView>
-    </MainLayout>
+            <View style={styles.recentItemContent}>
+              <Text style={styles.recentItemTitle}>{sale.customer}</Text>
+              <Text style={styles.recentItemSubtitle}>{sale.description}</Text>
+            </View>
+            <Text style={styles.recentItemAmount}>৳{sale.amount.toLocaleString()}</Text>
+          </View>
+        ))
+      )}
+    </View>
+    </ScrollView>
   );
 }
 

@@ -1,47 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { theme } from '@/constants/theme';
-import { getMonthlySales } from '@/services/api';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface ChartData {
   month: string;
   value: number;
 }
 
-const DashboardChart: React.FC = () => {
-  const [data, setData] = useState<ChartData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface DashboardChartProps {
+  data: ChartData[];
+}
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const result = await getMonthlySales();
-        setData(result);
-        setError(null);
-      } catch (err) {
-        setError('Failed to fetch sales data.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (loading) {
+const DashboardChart: React.FC<DashboardChartProps> = ({ data }) => {
+  if (!data || data.length === 0) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color={theme.colors.primary[500]} />
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>{error}</Text>
+        <Text style={styles.errorText}>No sales data available.</Text>
       </View>
     );
   }
@@ -63,18 +38,20 @@ const DashboardChart: React.FC = () => {
               <View style={styles.barLabelContainer}>
                 <Text style={styles.barValue}>${(item.value / 1000).toFixed(1)}k</Text>
               </View>
-              <View 
+              <LinearGradient
+                colors={[theme.colors.primary[400], theme.colors.primary[600]]}
                 style={[
-                  styles.bar, 
-                  { 
-                    height: barHeight, 
+                  styles.bar,
+                  {
+                    height: barHeight,
                     width: barWidth,
                     marginLeft: barSpacing / 2,
                     marginRight: barSpacing / 2,
-                    backgroundColor: theme.colors.primary[500],
-                  }
-                ]} 
-              />
+                  },
+                ]}
+              >
+                <View style={styles.barTop} />
+              </LinearGradient>
               <Text style={styles.monthLabel}>{item.month}</Text>
             </View>
           );
@@ -131,8 +108,13 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
   },
   bar: {
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 6,
+    justifyContent: 'flex-end',
+  },
+  barTop: {
+    height: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   monthLabel: {
     marginTop: 8,

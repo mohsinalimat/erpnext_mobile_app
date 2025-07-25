@@ -83,6 +83,9 @@ export default function MainMenu() {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Main Menu</Text>
           <Text style={styles.headerSubtitle}>Select an option to continue</Text>
+          <TouchableOpacity style={styles.settingsButton} onPress={() => router.push('/settings' as any)}>
+            <Feather name="settings" size={24} color="#6B7280" />
+          </TouchableOpacity>
         </View>
         <View style={styles.gridContainer}>
           {menuItems.map((item, index) => (
@@ -211,5 +214,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 12,
+  },
+  settingsButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    padding: 8,
   },
 });

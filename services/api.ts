@@ -85,7 +85,14 @@ export const loginToERPNext = async (
 export const fetchDashboardData = async (userId: string) => {
   try {
     // Fetch dashboard data from multiple ERPNext endpoints
-    const [salesResponse, customersResponse, ordersResponse] = await Promise.allSettled([
+    const [
+      salesResponse,
+      customersResponse,
+      ordersResponse,
+      itemsResponse,
+      quotationsResponse,
+      monthlySalesData,
+    ] = await Promise.allSettled([
       // Get sales data
       api.get('/api/resource/Sales Invoice', {
         params: {
@@ -100,9 +107,6 @@ export const fetchDashboardData = async (userId: string) => {
       api.get('/api/method/frappe.client.get_count', {
         params: {
           doctype: 'Customer',
-          filters: JSON.stringify({
-            creation: ['>=', new Date().toISOString().split('T')[0]],
-          }),
         },
       }),
       // Get sales orders
@@ -110,68 +114,85 @@ export const fetchDashboardData = async (userId: string) => {
         params: {
           fields: '["name", "status", "grand_total"]',
           filters: JSON.stringify({
-            transaction_date: ['>=', new Date().toISOString().split('T')[0]],
+            status: ['!=', 'Completed'],
           }),
           limit_page_length: 100,
         },
       }),
+      // Get total items
+      api.get('/api/method/frappe.client.get_count', {
+        params: {
+          doctype: 'Item',
+        },
+      }),
+      // Get total quotations
+      api.get('/api/method/frappe.client.get_count', {
+        params: {
+          doctype: 'Quotation',
+        },
+      }),
+      // Fetch monthly sales
+      getMonthlySales(),
     ]);
 
     // Process sales data
     let salesTotal = 0;
-    let recentSales = [];
-    interface Invoice {
-      name: string;
-      grand_total: number;
-    }
     if (salesResponse.status === 'fulfilled') {
       const salesData = salesResponse.value.data.data || [];
-      salesTotal = salesData.reduce((sum: number, invoice: Invoice) => sum + (invoice.grand_total || 0), 0);
-      recentSales = salesData.slice(0, 3).map((invoice: Invoice) => ({
-        id: invoice.name,
-        amount: invoice.grand_total || 0,
-        description: `Invoice ${invoice.name}`,
-      }));
+      salesTotal = salesData.reduce((sum: number, invoice: { grand_total: number }) => sum + (invoice.grand_total || 0), 0);
     }
 
     // Process customer data
-    let newCustomers = 0;
+    let totalCustomers = 0;
     if (customersResponse.status === 'fulfilled') {
-      newCustomers = customersResponse.value.data.message || 0;
+      totalCustomers = customersResponse.value.data.message || 0;
     }
 
     // Process orders data
     let openOrders = 0;
-    let recentSalesOrders = [];
-    interface SalesOrder {
-      name: string;
-      grand_total: number;
-    }
     if (ordersResponse.status === 'fulfilled') {
-      const ordersData = ordersResponse.value.data.data || [];
-      openOrders = ordersData.length || 0;
-      recentSalesOrders = ordersData.map((order: SalesOrder) => ({
-        id: order.name,
-        amount: order.grand_total || 0,
-        description: `Sales Order ${order.name}`,
-      }));
+      openOrders = ordersResponse.value.data.data?.length || 0;
+    }
+
+    // Process items data
+    let totalItems = 0;
+    if (itemsResponse.status === 'fulfilled') {
+      totalItems = itemsResponse.value.data.message || 0;
+    }
+
+    // Process quotations data
+    let totalQuotations = 0;
+    if (quotationsResponse.status === 'fulfilled') {
+      totalQuotations = quotationsResponse.value.data.message || 0;
+    }
+
+    // Process monthly sales data
+    let monthlySales: { month: string; value: number }[] = [];
+    if (monthlySalesData.status === 'fulfilled' && monthlySalesData.value) {
+      monthlySales = monthlySalesData.value;
     }
 
     return {
       salesTotal,
-      newCustomers,
+      totalCustomers,
       openOrders,
-      pendingTasks: 0, // Would need to fetch from ToDo or Task doctype
-      alerts: [], // Would need custom logic based on your business rules
-      recentSales: recentSalesOrders,
+      totalItems,
+      totalQuotations,
+      monthlySales,
+      pendingTasks: 0, // Placeholder
+      alerts: [], // Placeholder
+      recentSales: [], // Placeholder
     };
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
     // Return fallback data if API calls fail
     return {
       salesTotal: 0,
-      newCustomers: 0,
+      totalCustomers: 0,
       openOrders: 0,
+      totalItems: 0,
+      totalQuotations: 0,
+      monthlySales: [],
       pendingTasks: 0,
       alerts: [{
         title: 'Connection Error',

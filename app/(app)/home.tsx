@@ -13,12 +13,15 @@ import DashboardCard from '@/components/dashboard/DashboardCard';
 import DashboardChart from '@/components/dashboard/DashboardChart';
 import AlertCard from '@/components/dashboard/AlertCard';
 import { fetchDashboardData } from '@/services/api';
-import { Clock, CreditCard, ShoppingCart, Users } from 'lucide-react-native';
+import { Clock, CreditCard, ShoppingCart, Users, Package, FileText } from 'lucide-react-native';
 
 interface DashboardData {
   salesTotal: number;
-  newCustomers: number;
+  totalCustomers: number;
   openOrders: number;
+  totalItems: number;
+  totalQuotations: number;
+  monthlySales: { month: string; value: number }[];
   pendingTasks: number;
   alerts: { title: string; message: string; type: "warning" | "info" | "error"; }[];
   recentSales: { id: string; customer: string; amount: number; description: string; }[];
@@ -30,8 +33,11 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [dashboardData, setDashboardData] = useState<DashboardData>({
     salesTotal: 0,
-    newCustomers: 0,
+    totalCustomers: 0,
     openOrders: 0,
+    totalItems: 0,
+    totalQuotations: 0,
+    monthlySales: [],
     pendingTasks: 0,
     alerts: [],
     recentSales: []
@@ -96,8 +102,8 @@ export default function DashboardScreen() {
           containerStyle={{ flex: 1, marginRight: 8 }}
         />
         <DashboardCard
-          title="New Customers"
-          value={dashboardData.newCustomers.toString()}
+          title="Total Customers"
+          value={dashboardData.totalCustomers.toString()}
           icon={<Users color={theme.colors.secondary[500]} size={24} />}
           color={theme.colors.secondary[500]}
           containerStyle={{ flex: 1, marginLeft: 8 }}
@@ -110,6 +116,23 @@ export default function DashboardScreen() {
           value={dashboardData.openOrders.toString()}
           icon={<ShoppingCart color={theme.colors.tertiary[500]} size={24} />}
           color={theme.colors.tertiary[500]}
+          containerStyle={{ flex: 1, marginRight: 8 }}
+        />
+        <DashboardCard
+          title="Total Items"
+          value={dashboardData.totalItems.toString()}
+          icon={<Package color={theme.colors.info[500]} size={24} />}
+          color={theme.colors.info[500]}
+          containerStyle={{ flex: 1, marginLeft: 8 }}
+        />
+      </View>
+
+      <View style={styles.cardRow}>
+        <DashboardCard
+          title="Quotations"
+          value={dashboardData.totalQuotations.toString()}
+          icon={<FileText color={theme.colors.success[500]} size={24} />}
+          color={theme.colors.success[500]}
           containerStyle={{ flex: 1, marginRight: 8 }}
         />
         <DashboardCard
@@ -133,7 +156,7 @@ export default function DashboardScreen() {
 
     <View style={styles.chartsSection}>
       <Text style={styles.sectionTitle}>Sales Overview</Text>
-      <DashboardChart />
+      <DashboardChart data={dashboardData.monthlySales} />
     </View>
 
     <View style={styles.recentSection}>

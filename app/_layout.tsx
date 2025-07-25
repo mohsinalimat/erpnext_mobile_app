@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Alert } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, View, Text, StyleSheet, Button } from 'react-native';
 import * as Updates from 'expo-updates';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
@@ -8,10 +8,12 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider } from '@/context/ThemeContext';
-import { NetworkProvider } from '../context/NetworkContext';
+import { NetworkProvider, useNetwork } from '../context/NetworkContext';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { Slot, Redirect, Stack, useRouter } from 'expo-router';
 import { startBackgroundLocation, stopBackgroundLocation } from '@/services/backgroundLocation';
+import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -31,6 +33,65 @@ function AuthStatusChecker() {
   }, [isAuthenticated, isInitialized, router]);
 
   return null; // This component doesn't render anything, it just handles redirection
+}
+
+function AppInitializer({ children }: { children: React.ReactNode }) {
+  const { isConnected } = useNetwork();
+  const [mediaLibraryStatus, requestMediaLibraryPermission] = ImagePicker.useMediaLibraryPermissions();
+  const [locationStatus, requestLocationPermission] = Location.useForegroundPermissions();
+
+  const handleRequestMediaLibraryPermission = () => {
+    requestMediaLibraryPermission();
+  };
+
+  const handleRequestLocationPermission = () => {
+    requestLocationPermission();
+  };
+
+  if (isConnected === false) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.text}>No Internet Connection</Text>
+        <Text style={styles.subText}>
+          Please check your network settings and restart the app.
+        </Text>
+      </View>
+    );
+  }
+
+  if (isConnected === null) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.text}>Connecting...</Text>
+      </View>
+    )
+  }
+
+  if (mediaLibraryStatus && !mediaLibraryStatus.granted) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.text}>Storage Permission Required</Text>
+        <Text style={styles.subText}>
+          This app needs access to your storage to function properly.
+        </Text>
+        <Button title="Grant Permission" onPress={handleRequestMediaLibraryPermission} />
+      </View>
+    );
+  }
+
+  if (locationStatus && !locationStatus.granted) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.text}>Location Permission Required</Text>
+        <Text style={styles.subText}>
+          This app needs access to your location to function properly.
+        </Text>
+        <Button title="Grant Permission" onPress={handleRequestLocationPermission} />
+      </View>
+    );
+  }
+
+  return <>{children}</>;
 }
 
 
@@ -97,13 +158,15 @@ export default function RootLayout() {
         <LanguageProvider>
           <AuthProvider>
             <NetworkProvider>
-              <AuthStatusChecker />
-              <Stack>
-                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                <Stack.Screen name="(app)" options={{ headerShown: false }} />
-                <Stack.Screen name="+not-found" options={{ headerShown: false }} />
-              </Stack>
-              <StatusBar style="auto" />
+              <AppInitializer>
+                <AuthStatusChecker />
+                <Stack>
+                  <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                  <Stack.Screen name="(app)" options={{ headerShown: false }} />
+                  <Stack.Screen name="+not-found" options={{ headerShown: false }} />
+                </Stack>
+                <StatusBar style="auto" />
+              </AppInitializer>
             </NetworkProvider>
           </AuthProvider>
         </LanguageProvider>
@@ -111,3 +174,25 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  text: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    fontFamily: 'Inter-Bold'
+  },
+  subText: {
+    fontSize: 16,
+    color: 'gray',
+    marginTop: 10,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+    fontFamily: 'Inter-Regular'
+  },
+});

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { theme } from '@/constants/theme';
 import { useLanguage } from '@/context/LanguageContext';
 import {
@@ -15,6 +16,15 @@ import {
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
   const { translations } = useLanguage();
+  const [serverUrl, setServerUrl] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const fetchServerUrl = async () => {
+      const url = await AsyncStorage.getItem('serverUrl');
+      setServerUrl(url);
+    };
+    fetchServerUrl();
+  }, []);
 
   if (!user) {
     return (
@@ -28,7 +38,11 @@ export default function ProfileScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Image
-          source={{ uri: `https://i.pravatar.cc/150?u=${user.email}` }}
+          source={{
+            uri: user.user_image
+              ? `${serverUrl}${user.user_image}`
+              : `https://i.pravatar.cc/150?u=${user.email}`,
+          }}
           style={styles.avatar}
         />
         <Text style={styles.name}>{user.name}</Text>

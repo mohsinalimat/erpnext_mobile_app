@@ -58,6 +58,7 @@ export const loginToERPNext = async (
         mobile: employeeData.cell_number || 'N/A',
         passport_nid: employeeData.passport_number || 'N/A',
         date_of_joining: employeeData.date_of_joining || 'N/A',
+        user_image: profileResponse.data.data.user_image || null,
       },
       token: `${API_KEY}:${API_SECRET}`,
     };

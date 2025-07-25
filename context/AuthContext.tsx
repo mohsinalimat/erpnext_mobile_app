@@ -13,6 +13,7 @@ type User = {
   mobile: string;
   passport_nid: string;
   date_of_joining: string;
+  user_image: string | null;
 };
 
 type AuthContextType = {

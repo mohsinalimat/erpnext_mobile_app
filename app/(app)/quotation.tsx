@@ -83,32 +83,66 @@ export default function QuotationScreen() {
       color: 'red',
     },
     listContainer: {
-      padding: 16,
+      paddingHorizontal: 16,
+      paddingTop: 16,
     },
     itemContainer: {
+      backgroundColor: theme.colors.white,
+      borderRadius: 12,
       padding: 16,
-      marginBottom: 12,
-      borderRadius: 8,
+      marginBottom: 16,
+      shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
-      elevation: 2,
-      backgroundColor: theme.colors.white,
+      elevation: 3,
     },
     itemHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'center',
+      alignItems: 'flex-start',
+      marginBottom: 12,
+    },
+    itemTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.colors.text.primary,
+      flex: 1,
+    },
+    statusBadge: {
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    statusText: {
+      color: theme.colors.white,
+      fontWeight: 'bold',
+      fontSize: 12,
+    },
+    itemBody: {
+      marginBottom: 12,
+    },
+    customerName: {
+      fontSize: 16,
+      color: theme.colors.text.secondary,
       marginBottom: 8,
     },
-    itemDetails: {
+    itemFooter: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.gray[200],
+      paddingTop: 12,
     },
-    itemTitle: {
+    dateText: {
+      fontSize: 14,
+      color: theme.colors.text.secondary,
+    },
+    totalText: {
+      fontSize: 18,
       fontWeight: 'bold',
-      fontSize: 16,
+      color: theme.colors.primary[500],
     },
   }), [theme]);
 
@@ -146,26 +180,22 @@ export default function QuotationScreen() {
   };
 
   const renderItem = ({ item }: { item: Quotation }) => (
-    <Pressable onPress={() => handleDetail(item)}>
-      <View style={styles.itemContainer}>
-        <View style={styles.itemHeader}>
-          <Text style={[styles.itemTitle, { color: theme.colors.text.primary }]}>
-            {item.name}
-          </Text>
-          <Text style={[styles.itemTitle, { color: getStatusColor(item.status) }]}>
-            {item.status}
-          </Text>
+    <Pressable onPress={() => handleDetail(item)} style={styles.itemContainer}>
+      <View style={styles.itemHeader}>
+        <Text style={styles.itemTitle}>{item.name}</Text>
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+          <Text style={styles.statusText}>{item.status}</Text>
         </View>
-        <Text style={{ color: theme.colors.text.secondary, marginBottom: 8 }}>
-          {item.customer_name}
-        </Text>
-        <View style={styles.itemDetails}>
-          <Text style={{ color: theme.colors.text.secondary }}>Date: {item.transaction_date}</Text>
-          <Text style={{ color: theme.colors.text.secondary }}>Valid Till: {item.valid_till}</Text>
+      </View>
+      <View style={styles.itemBody}>
+        <Text style={styles.customerName}>{item.customer_name}</Text>
+      </View>
+      <View style={styles.itemFooter}>
+        <View>
+          <Text style={styles.dateText}>Date: {item.transaction_date}</Text>
+          <Text style={styles.dateText}>Valid Till: {item.valid_till}</Text>
         </View>
-        <Text style={{ color: theme.colors.text.primary, fontWeight: 'bold', marginTop: 8 }}>
-          ৳{item.grand_total}
-        </Text>
+        <Text style={styles.totalText}>৳{item.grand_total.toFixed(2)}</Text>
       </View>
     </Pressable>
   );

@@ -81,7 +81,7 @@ export default function MainMenu() {
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Main Menu</Text>
+          <Text style={styles.headerTitle}>Prime ERP Mobile</Text>
           <Text style={styles.headerSubtitle}>Select an option to continue</Text>
           <TouchableOpacity style={styles.settingsButton} onPress={() => router.push('/settings' as any)}>
             <Feather name="settings" size={24} color="#6B7280" />

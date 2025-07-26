@@ -1,12 +1,37 @@
-import { Stack, router } from 'expo-router';
-import { Button } from 'react-native';
+import { Stack, router, usePathname } from 'expo-router';
+import { Button, View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import MainLayout from '../../components/layout/MainLayout';
+import { theme } from '@/constants/theme';
+
+const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
+  const pathname = usePathname();
+  const noLayoutScreens = ['/new-quotation'];
+
+  if (noLayoutScreens.includes(pathname)) {
+    return <View style={{ flex: 1, backgroundColor: theme.colors.background }}>{children}</View>;
+  }
+
+  return <MainLayout>{children}</MainLayout>;
+};
 
 export default function AppLayout() {
   return (
-    <MainLayout>
+    <LayoutWrapper>
       <Stack>
-        <Stack.Screen name="address" options={{ title: 'Address' }} />
+        <Stack.Screen
+          name="address"
+          options={{
+            title: 'Address',
+            headerRight: () => (
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => router.push('/(app)/new-address')}
+              >
+                <Text style={styles.buttonText}>+ Add Address</Text>
+              </TouchableOpacity>
+            ),
+          }}
+        />
         <Stack.Screen name="check-in-out" options={{ title: 'Check In/Out' }} />
         <Stack.Screen name="contact" options={{ title: 'Contact' }} />
         <Stack.Screen name="customer-preview" options={{ title: 'Customer Preview' }} />
@@ -53,6 +78,21 @@ export default function AppLayout() {
         <Stack.Screen name="task-preview" options={{ title: 'Task Preview' }} />
         <Stack.Screen name="tasks" options={{ title: 'Tasks' }} />
       </Stack>
-    </MainLayout>
+    </LayoutWrapper>
   );
 }
+
+const styles = StyleSheet.create({
+  button: {
+    backgroundColor: theme.colors.black,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  buttonText: {
+    color: theme.colors.white,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+});

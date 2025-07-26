@@ -66,8 +66,8 @@ export const getCustomerContacts = async (customer: string) => {
       params: {
         fields: '["name", "first_name", "last_name"]',
         filters: JSON.stringify([
-          ["link_doctype", "=", "Customer"],
-          ["link_name", "=", customer]
+          ['Dynamic Link', 'link_doctype', '=', 'Customer'],
+          ['Dynamic Link', 'link_name', '=', customer],
         ]),
       },
     });
@@ -84,8 +84,8 @@ export const getCustomerAddresses = async (customer: string) => {
       params: {
         fields: '["name", "address_line1", "city"]',
         filters: JSON.stringify([
-          ["link_doctype", "=", "Customer"],
-          ["link_name", "=", customer]
+          ['Dynamic Link', 'link_doctype', '=', 'Customer'],
+          ['Dynamic Link', 'link_name', '=', customer],
         ]),
       },
     });

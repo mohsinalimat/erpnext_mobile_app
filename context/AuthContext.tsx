@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loginToERPNext } from '@/services/api';
+import { startBackgroundLocation, stopBackgroundLocation } from '@/services/backgroundLocation';
 
 type User = {
   id: string;
@@ -143,6 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setUser(user);
       setIsAuthenticated(true);
+      await startBackgroundLocation();
     } catch (error: any) {
       console.error('Login error:', error);
       setError(error.message || 'Authentication failed. Please check your credentials.');
@@ -162,6 +164,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setUser(null);
       setIsAuthenticated(false);
+      await stopBackgroundLocation();
     } catch (error) {
       console.error('Sign out error:', error);
     }

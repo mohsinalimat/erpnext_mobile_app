@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, useMemo } from 'react';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import { syncQueue } from '@/services/offline';
 
@@ -34,8 +34,10 @@ export const NetworkProvider: React.FC<{children: React.ReactNode}> = ({ childre
     wasConnected.current = isConnected;
   }, [isConnected]);
 
+  const value = useMemo(() => ({ isConnected }), [isConnected]);
+
   return (
-    <NetworkContext.Provider value={{ isConnected }}>
+    <NetworkContext.Provider value={value}>
       {children}
     </NetworkContext.Provider>
   );

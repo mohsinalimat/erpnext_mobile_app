@@ -31,7 +31,6 @@ const uniqueBy = <T,>(items: T[], keyExtractor: (item: T) => string | undefined)
 export default function NewCustomerScreen2() {
   const { isConnected } = useNetwork();
   const navigation = useNavigation();
-  console.log('Rendering NewCustomerScreen', isConnected);
   const [customerName, setCustomerName] = useState('');
   const [customerType, setCustomerType] = useState(null);
   const [customerGroup, setCustomerGroup] = useState(null);
@@ -133,7 +132,7 @@ export default function NewCustomerScreen2() {
     }
   }, [params]);
 
-  const handleCreateCustomer = async () => {
+  const handleCreateCustomer = useCallback(async () => {
     if (isConnected === null) {
       Alert.alert('Error', 'Cannot create customer while network status is unknown.');
       return;
@@ -166,7 +165,7 @@ export default function NewCustomerScreen2() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isConnected, customerName, customerType, customerGroup, territory, city, accountManager, billingCurrency, primaryContact, addresses]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -174,8 +173,8 @@ export default function NewCustomerScreen2() {
         loading ? (
           <ActivityIndicator size="small" color={theme.colors.primary[500]} style={{ marginRight: 15 }} />
         ) : (
-          <TouchableOpacity onPress={handleCreateCustomer} style={{ marginRight: 15 }}>
-            <Text style={{ color: theme.colors.primary[500], fontSize: 16, fontWeight: 'bold' }}>Save</Text>
+          <TouchableOpacity onPress={handleCreateCustomer} style={{ backgroundColor: 'black', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8, marginRight: 15 }}>
+            <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>Save</Text>
           </TouchableOpacity>
         )
       ),

@@ -220,7 +220,13 @@ export default function NewItemScreen() {
         zIndexInverse={3000}
         listMode="MODAL"
       />
-      {loading && <ActivityIndicator size="large" color={theme.colors.primary[500]} />}
+      {loading ? (
+        <ActivityIndicator size="large" color={theme.colors.primary[500]} />
+      ) : (
+        <TouchableOpacity style={styles.button} onPress={handleCreateItem}>
+          <Text style={styles.buttonText}>Create Item</Text>
+        </TouchableOpacity>
+      )}
       </ScrollView>
     </View>
   );
@@ -256,14 +262,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   button: {
-    backgroundColor: theme.colors.primary[500],
+    backgroundColor: 'black',
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 20,
   },
   buttonText: {
-    color: theme.colors.white,
+    color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
   },

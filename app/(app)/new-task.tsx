@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import { createTask } from '@/services/offline';
 import { useNetwork } from '@/context/NetworkContext';
 import { theme } from '@/constants/theme';
@@ -58,7 +58,9 @@ export default function NewTaskScreen() {
       {loading ? (
         <ActivityIndicator size="large" color={theme.colors.primary[500]} />
       ) : (
-        <Button title="Create Task" onPress={handleCreateTask} />
+        <TouchableOpacity style={styles.createButton} onPress={handleCreateTask}>
+          <Text style={styles.createButtonText}>Create Task</Text>
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -80,5 +82,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
     fontSize: 16,
+  },
+  createButton: {
+    backgroundColor: 'black',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  createButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });

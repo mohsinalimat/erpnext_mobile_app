@@ -89,12 +89,6 @@ export default function AddressScreen() {
           <Text>No addresses found.</Text>
         </View>
       )}
-      <TouchableOpacity
-        style={styles.createButton}
-        onPress={() => router.push('/(app)/new-address')}
-      >
-        <Feather name="plus" size={24} color={theme.colors.white} />
-      </TouchableOpacity>
     </View>
   );
 }
@@ -143,16 +137,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: theme.colors.text.secondary,
     marginLeft: 8,
-  },
-  createButton: {
-    position: 'absolute',
-    bottom: 16,
-    right: 16,
-    backgroundColor: theme.colors.primary[500],
-    borderRadius: 50,
-    width: 56,
-    height: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

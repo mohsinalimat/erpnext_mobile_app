@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Alert, View, Text, StyleSheet, Button } from 'react-native';
+import { isTrialActive, hasValidLicense, setInstallationDate } from '../services/license';
 import * as Updates from 'expo-updates';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
@@ -17,6 +18,32 @@ import * as Location from 'expo-location';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
+
+function LicenseChecker() {
+  const router = useRouter();
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const checkLicense = async () => {
+      await setInstallationDate();
+      const trialActive = await isTrialActive();
+      const validLicense = await hasValidLicense();
+
+      if (!trialActive && !validLicense) {
+        router.replace('/(auth)/license' as any);
+      }
+      setIsReady(true);
+    };
+
+    checkLicense();
+  }, [router]);
+
+  if (!isReady) {
+    return null;
+  }
+
+  return <AuthStatusChecker />;
+}
 
 function AuthStatusChecker() {
   const { isAuthenticated, isInitialized } = useAuth();
@@ -159,7 +186,7 @@ export default function RootLayout() {
           <AuthProvider>
             <NetworkProvider>
               <AppInitializer>
-                <AuthStatusChecker />
+                <LicenseChecker />
                 <Stack>
                   <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                   <Stack.Screen name="(app)" options={{ headerShown: false }} />

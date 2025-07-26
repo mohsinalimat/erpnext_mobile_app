@@ -236,6 +236,25 @@ export const searchERPNextData = async (query: string, docType: string = 'All') 
   }
 };
 
+export const searchDoctype = async (doctype: string, query: string) => {
+  try {
+    const response = await api.get(`/api/resource/${doctype}`, {
+      params: {
+        filters: JSON.stringify([['name', 'like', `%${query}%`]]),
+        fields: JSON.stringify(['name']),
+        limit_page_length: 20,
+      },
+    });
+    return response.data.data.map((item: any) => ({
+      id: item.name,
+      title: item.name,
+    }));
+  } catch (error) {
+    console.error(`Error searching ${doctype}:`, error);
+    return [];
+  }
+};
+
 // Get ERPNext server info
 export const getServerInfo = async () => {
   try {

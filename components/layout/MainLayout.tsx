@@ -1,6 +1,8 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BottomNavigation from '../navigation/BottomNavigation';
+import { theme } from '@/constants/theme';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -9,20 +11,28 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children, showBottomNav = true }: MainLayoutProps) {
   return (
-    <View style={styles.container}>
-      <View style={styles.content}>{children}</View>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? -64 : 0}
+      >
+        <View style={styles.content}>{children}</View>
+      </KeyboardAvoidingView>
       {showBottomNav && <BottomNavigation />}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.colors.background,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   content: {
     flex: 1,
-    paddingBottom: 80,
   },
 });

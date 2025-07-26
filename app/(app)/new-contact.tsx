@@ -226,13 +226,13 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
   },
   saveButton: {
-    backgroundColor: theme.colors.primary[500],
+    backgroundColor: 'black',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
   },
   saveButtonText: {
-    color: theme.colors.white,
+    color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
   },

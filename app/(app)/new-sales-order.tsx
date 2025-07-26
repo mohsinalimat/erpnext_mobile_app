@@ -253,8 +253,8 @@ export default function NewSalesOrderScreen() {
     useLayoutEffect(() => {
         navigation.setOptions({
             headerRight: () => (
-                <TouchableOpacity onPress={handleSave} style={{ marginRight: 15 }}>
-                    <Text style={{ color: theme.colors.primary[500], fontSize: 16, fontWeight: 'bold' }}>Save</Text>
+                <TouchableOpacity onPress={handleSave} style={{ backgroundColor: 'black', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8, marginRight: 15 }}>
+                    <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>Save</Text>
                 </TouchableOpacity>
             ),
         });

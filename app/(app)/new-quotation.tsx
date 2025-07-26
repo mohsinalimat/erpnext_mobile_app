@@ -328,40 +328,41 @@ export default function NewQuotationScreen() {
 
         <Text style={styles.subHeader}>Items</Text>
         <View style={styles.tableHeader}>
-          <Text style={styles.tableHeaderText}>Item</Text>
-          <Text style={styles.tableHeaderText}>Qty</Text>
-          <Text style={styles.tableHeaderText}>Rate</Text>
-          <Text style={styles.tableHeaderText}>Amount</Text>
-          <Text style={styles.tableHeaderText}></Text>
+          <Text style={[styles.tableHeaderText, styles.itemHeaderText]}>Item</Text>
+          <Text style={[styles.tableHeaderText, styles.qtyHeaderText]}>Qty</Text>
+          <Text style={[styles.tableHeaderText, styles.rateHeaderText]}>Rate</Text>
+          <Text style={[styles.tableHeaderText, styles.amountHeaderText]}>Amount</Text>
+          <Text style={[styles.tableHeaderText, styles.actionHeaderText]}></Text>
         </View>
         {items.map((item, index) => (
           <View key={item.key} style={styles.tableRow}>
-            <Picker
-              selectedValue={item.item_code}
-              onValueChange={(itemValue) => handleItemChange(itemValue, index, 'item_code')}
-              style={styles.tableCell}
-            >
-              <Picker.Item label="Select Item" value="" />
-              {allItems.map((i) => (
-                <Picker.Item key={i.name} label={i.item_name} value={i.name} />
-              ))}
-            </Picker>
+            <View style={styles.itemCell}>
+              <Picker
+                selectedValue={item.item_code}
+                onValueChange={(itemValue) => handleItemChange(itemValue, index, 'item_code')}
+              >
+                <Picker.Item label="Select Item" value="" />
+                {allItems.map((i) => (
+                  <Picker.Item key={i.name} label={i.item_name} value={i.name} />
+                ))}
+              </Picker>
+            </View>
             <TextInput
-              style={styles.tableCell}
+              style={[styles.tableCell, styles.qtyCell]}
               placeholder="Qty"
               keyboardType="numeric"
               value={String(item.qty)}
               onChangeText={(text) => handleItemChange(Number(text), index, 'qty')}
             />
             <TextInput
-              style={styles.tableCell}
+              style={[styles.tableCell, styles.rateCell]}
               placeholder="Rate"
               keyboardType="numeric"
               value={String(item.rate)}
               editable={false}
             />
             <TextInput
-              style={styles.tableCell}
+              style={[styles.tableCell, styles.amountCell]}
               placeholder="Amount"
               keyboardType="numeric"
               value={String(item.amount)}
@@ -399,7 +400,8 @@ export default function NewQuotationScreen() {
           <View key={index} style={styles.tableRow}>
             <Text style={styles.tableCell}>{tax.type}</Text>
             <Text style={styles.tableCell}>{tax.rate}%</Text>
-            <Text style={styles.tableCell}>{tax.total}</Text>
+            <Text style={styles.tableCell}>{tax.amount.toFixed(2)}</Text>
+            <Text style={styles.tableCell}>{tax.total.toFixed(2)}</Text>
           </View>
         ))}
 
@@ -410,6 +412,9 @@ export default function NewQuotationScreen() {
         </View>
 
         {loading && <ActivityIndicator size="large" color={theme.colors.primary[500]} />}
+        <TouchableOpacity onPress={handleCreateQuotation} style={styles.createButton}>
+          <Text style={styles.createButtonText}>Create Quotation</Text>
+        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -438,13 +443,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 8,
   },
-  itemContainer: {
-    marginBottom: 16,
-    padding: 8,
-    borderWidth: 1,
-    borderColor: theme.colors.gray[300],
-    borderRadius: 8,
-  },
   tableHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -454,8 +452,22 @@ const styles = StyleSheet.create({
   },
   tableHeaderText: {
     fontWeight: 'bold',
-    flex: 1,
     textAlign: 'center',
+  },
+  itemHeaderText: {
+    flex: 3,
+  },
+  qtyHeaderText: {
+    flex: 1.5,
+  },
+  rateHeaderText: {
+    flex: 1.5,
+  },
+  amountHeaderText: {
+    flex: 1.5,
+  },
+  actionHeaderText: {
+    flex: 1,
   },
   tableRow: {
     flexDirection: 'row',
@@ -465,11 +477,23 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.gray[200],
   },
   tableCell: {
-    flex: 1,
     textAlign: 'center',
+    paddingHorizontal: 4,
+  },
+  itemCell: {
+    flex: 3,
+  },
+  qtyCell: {
+    flex: 1.5,
+  },
+  rateCell: {
+    flex: 1.5,
+  },
+  amountCell: {
+    flex: 1.5,
   },
   deleteButton: {
-    flex: 0.5,
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -503,5 +527,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'right',
     marginTop: 8,
+  },
+  createButton: {
+    backgroundColor: 'black',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  createButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });

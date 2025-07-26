@@ -526,34 +526,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   itemHeaderText: {
-    flex: 3,
+    flex: 2.5,
   },
   qtyHeaderText: {
-    flex: 1.5,
+    flex: 1,
   },
   rateHeaderText: {
-    flex: 1.5,
+    flex: 1.2,
   },
   amountHeaderText: {
-    flex: 1.5,
+    flex: 1.2,
   },
   actionHeaderText: {
-    flex: 1,
+    flex: 0.8,
   },
   itemCell: {
-    flex: 3,
+    flex: 2.5,
   },
   qtyCell: {
-    flex: 1.5,
+    flex: 1,
   },
   rateCell: {
-    flex: 1.5,
+    flex: 1.2,
   },
   amountCell: {
-    flex: 1.5,
+    flex: 1.2,
   },
   deleteButton: {
-    flex: 1,
+    flex: 0.8,
     alignItems: 'center',
     justifyContent: 'center',
   },

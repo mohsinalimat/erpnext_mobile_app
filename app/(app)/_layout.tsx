@@ -1,5 +1,6 @@
 import { Stack, router, usePathname } from 'expo-router';
 import { Button, View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { useKeepAwake } from 'expo-keep-awake';
 import MainLayout from '../../components/layout/MainLayout';
 import { theme } from '@/constants/theme';
 
@@ -15,6 +16,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default function AppLayout() {
+  useKeepAwake();
   return (
     <LayoutWrapper>
       <Stack>
@@ -59,6 +61,7 @@ export default function AppLayout() {
           name="new-quotation"
           options={{
             title: 'New Quotation',
+            headerShown: false,
             headerRight: () => (
               <TouchableOpacity
                 style={styles.button}

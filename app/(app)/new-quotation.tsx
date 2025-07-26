@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Modal, FlatList } from 'react-native';
 import { getCustomers, getItems, getItemPrice, getSalesTaxesAndChargesTemplates, getSalesTaxesAndChargesTemplateByName, getCustomerContacts, getCustomerAddresses } from '@/services/erpnext';
 import { createQuotation } from '@/services/offline';
 import { Feather } from '@expo/vector-icons';
 import { useNetwork } from '@/context/NetworkContext';
 import { theme } from '@/constants/theme';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 
 interface Customer {
   name: string;
@@ -22,9 +22,10 @@ interface Item {
 interface QuotationItem {
   key: number;
   item_code: string;
-  qty: number;
-  rate: number;
+  qty: number | string;
+  rate: number | string;
   amount: number;
+  rate_is_editable?: boolean;
 }
 
 interface SalesTax {
@@ -61,7 +62,7 @@ export default function NewQuotationScreen() {
   const [selectedAddress, setSelectedAddress] = useState('');
   const [date, setDate] = useState(new Date());
   const [validTill, setValidTill] = useState(new Date(new Date().setDate(new Date().getDate() + 7)));
-  const [items, setItems] = useState<QuotationItem[]>([{ key: 1, item_code: '', qty: 1, rate: 0, amount: 0 }]);
+  const [items, setItems] = useState<QuotationItem[]>([{ key: 1, item_code: '', qty: 1, rate: 0, amount: 0, rate_is_editable: true }]);
   const [allItems, setAllItems] = useState<Item[]>([]);
   const [salesTaxesAndChargesTemplates, setSalesTaxesAndChargesTemplates] = useState<SalesTaxesAndChargesTemplate[]>([]);
   const [selectedSalesTaxesAndChargesTemplate, setSelectedSalesTaxesAndChargesTemplate] = useState('');
@@ -69,6 +70,9 @@ export default function NewQuotationScreen() {
   const [loading, setLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showValidTillPicker, setShowValidTillPicker] = useState(false);
+  const [itemModalVisible, setItemModalVisible] = useState(false);
+  const [currentItemIndex, setCurrentItemIndex] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const params = useLocalSearchParams();
 
   useEffect(() => {
@@ -122,8 +126,8 @@ export default function NewQuotationScreen() {
     }
 
     const newTaxes: SalesTax[] = template.taxes.map((tax: any) => {
-      const totalRate = currentItems.reduce((acc, item) => acc + item.rate, 0);
-      const totalQty = currentItems.reduce((acc, item) => acc + item.qty, 0);
+      const totalRate = currentItems.reduce((acc, item) => acc + (parseFloat(String(item.rate)) || 0), 0);
+      const totalQty = currentItems.reduce((acc, item) => acc + (parseFloat(String(item.qty)) || 0), 0);
       const amount = (tax.rate * totalRate) / 100;
       const total = amount * totalQty;
       return {
@@ -149,13 +153,20 @@ export default function NewQuotationScreen() {
       try {
         const price = await getItemPrice(value);
         newItems[index].rate = price?.price_list_rate || 0;
+        newItems[index].rate_is_editable = !price?.price_list_rate;
       } catch (error) {
         Alert.alert('Error', 'Failed to fetch item price.');
         newItems[index].rate = 0;
+        newItems[index].rate_is_editable = true;
       }
+    } else if (field === 'item_code') {
+      newItems[index].rate = 0;
+      newItems[index].rate_is_editable = true;
     }
 
-    newItems[index].amount = (newItems[index].qty || 0) * (newItems[index].rate || 0);
+    const qty = parseFloat(String(newItems[index].qty)) || 0;
+    const rate = parseFloat(String(newItems[index].rate)) || 0;
+    newItems[index].amount = qty * rate;
     setItems(newItems);
 
     if (selectedSalesTaxesAndChargesTemplate) {
@@ -179,7 +190,7 @@ export default function NewQuotationScreen() {
   };
 
   const addNewItem = () => {
-    setItems([...items, { key: items.length + 1, item_code: '', qty: 1, rate: 0, amount: 0 }]);
+    setItems([...items, { key: items.length + 1, item_code: '', qty: 1, rate: 0, amount: 0, rate_is_editable: true }]);
   };
 
   const removeItem = (index: number) => {
@@ -216,7 +227,11 @@ export default function NewQuotationScreen() {
         shipping_address: selectedAddress,
         transaction_date: date.toISOString().slice(0, 10),
         valid_till: validTill.toISOString().slice(0, 10),
-        items: items.map(({ key, ...rest }) => rest),
+        items: items.map(({ key, ...rest }) => ({
+          ...rest,
+          qty: parseFloat(String(rest.qty)) || 0,
+          rate: parseFloat(String(rest.rate)) || 0,
+        })),
         taxes: taxes,
         grand_total: calculateGrandTotal(),
         status: 'Draft',
@@ -336,30 +351,31 @@ export default function NewQuotationScreen() {
         </View>
         {items.map((item, index) => (
           <View key={item.key} style={styles.tableRow}>
-            <View style={styles.itemCell}>
-              <Picker
-                selectedValue={item.item_code}
-                onValueChange={(itemValue) => handleItemChange(itemValue, index, 'item_code')}
-              >
-                <Picker.Item label="Select Item" value="" />
-                {allItems.map((i) => (
-                  <Picker.Item key={i.name} label={i.item_name} value={i.name} />
-                ))}
-              </Picker>
-            </View>
+            <TouchableOpacity
+              style={styles.itemCell}
+              onPress={() => {
+                setCurrentItemIndex(index);
+                setItemModalVisible(true);
+              }}
+            >
+              <Text style={styles.itemText}>
+                {item.item_code ? allItems.find(i => i.name === item.item_code)?.item_name : 'Select an item'}
+              </Text>
+            </TouchableOpacity>
             <TextInput
               style={[styles.tableCell, styles.qtyCell]}
               placeholder="Qty"
-              keyboardType="numeric"
+              keyboardType="decimal-pad"
               value={String(item.qty)}
-              onChangeText={(text) => handleItemChange(Number(text), index, 'qty')}
+              onChangeText={(text) => handleItemChange(text, index, 'qty')}
             />
             <TextInput
               style={[styles.tableCell, styles.rateCell]}
               placeholder="Rate"
-              keyboardType="numeric"
+              keyboardType="decimal-pad"
               value={String(item.rate)}
-              editable={false}
+              editable={item.rate_is_editable}
+              onChangeText={(text) => handleItemChange(text, index, 'rate')}
             />
             <TextInput
               style={[styles.tableCell, styles.amountCell]}
@@ -374,8 +390,7 @@ export default function NewQuotationScreen() {
           </View>
         ))}
         <TouchableOpacity onPress={addNewItem} style={styles.addItemButton}>
-          <Feather name="plus" size={24} color={theme.colors.white} />
-          <Text style={styles.addItemButtonText}>Add New Item</Text>
+          <Text style={styles.addItemButtonText}>Add Row</Text>
         </TouchableOpacity>
 
         <Text style={styles.subHeader}>Sales Taxes and Charges</Text>
@@ -412,10 +427,39 @@ export default function NewQuotationScreen() {
         </View>
 
         {loading && <ActivityIndicator size="large" color={theme.colors.primary[500]} />}
-        <TouchableOpacity onPress={handleCreateQuotation} style={styles.createButton}>
-          <Text style={styles.createButtonText}>Create Quotation</Text>
-        </TouchableOpacity>
       </ScrollView>
+      <Modal
+        visible={itemModalVisible}
+        animationType="slide"
+        onRequestClose={() => setItemModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search for an item..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          <FlatList
+            data={allItems.filter(i => i.item_name.toLowerCase().includes(searchQuery.toLowerCase()))}
+            keyExtractor={(item) => item.name}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.modalItem}
+                onPress={() => {
+                  if (currentItemIndex !== null) {
+                    handleItemChange(item.name, currentItemIndex, 'item_code');
+                  }
+                  setItemModalVisible(false);
+                  setSearchQuery('');
+                }}
+              >
+                <Text>{item.item_name}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -425,6 +469,26 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: theme.colors.background,
+  },
+  modalContainer: {
+    flex: 1,
+    padding: 16,
+  },
+  searchInput: {
+    backgroundColor: theme.colors.white,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    fontSize: 16,
+  },
+  modalItem: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.gray[200],
+  },
+  itemText: {
+    padding: 12,
+    fontSize: 16,
   },
   label: {
     fontSize: 16,
@@ -498,17 +562,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addItemButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.primary[500],
-    padding: 10,
+    backgroundColor: theme.colors.gray[200],
+    padding: 12,
     borderRadius: 8,
     alignSelf: 'flex-start',
     marginVertical: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[300],
+    alignItems: 'center',
   },
   addItemButtonText: {
-    color: theme.colors.white,
-    marginLeft: 8,
+    color: 'black',
     fontWeight: 'bold',
   },
   totalsContainer: {
@@ -527,17 +591,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'right',
     marginTop: 8,
-  },
-  createButton: {
-    backgroundColor: 'black',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  createButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
   },
 });

@@ -60,10 +60,12 @@ export default function AppLayout() {
           options={{
             title: 'New Quotation',
             headerRight: () => (
-              <Button
+              <TouchableOpacity
+                style={styles.button}
                 onPress={() => router.push({ pathname: '/(app)/new-quotation', params: { create: 'true' } })}
-                title="Create"
-              />
+              >
+                <Text style={styles.buttonText}>Save</Text>
+              </TouchableOpacity>
             ),
           }}
         />

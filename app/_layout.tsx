@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Alert, View, Text, StyleSheet, Button } from 'react-native';
-import AppCenter from 'appcenter';
-import Analytics from 'appcenter-analytics';
-import Crashes from 'appcenter-crashes';
 import { isTrialActive, hasValidLicense, setInstallationDate } from '../services/license';
 import * as Updates from 'expo-updates';
 import { StatusBar } from 'expo-status-bar';
@@ -129,13 +126,6 @@ export default function RootLayout() {
   useFrameworkReady();
 
   useEffect(() => {
-    const initAppCenter = async () => {
-      await AppCenter.setLogLevel(AppCenter.LogLevel.VERBOSE);
-      // @ts-ignore
-      await AppCenter.start({ appSecret: '1d4cd71a-3dc4-4613-98f8-38738b03873e', services: [Analytics, Crashes] });
-    }
-
-    initAppCenter();
     async function checkForUpdates() {
       if (!__DEV__) {
         try {

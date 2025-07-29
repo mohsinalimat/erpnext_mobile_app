@@ -92,9 +92,6 @@ export default function CustomersScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-        <TouchableOpacity style={styles.addButton} onPress={() => router.push('/new-customer' as any)}>
-          <Feather name="plus" size={24} color={theme.colors.white} />
-        </TouchableOpacity>
       </View>
       {filteredCustomers.length === 0 ? (
         <View style={styles.center}>

@@ -14,8 +14,13 @@ import SalaryScreen from './salary';
 import CustomersScreen from './customers';
 import ContactScreen from './contact';
 import QuotationScreen from './quotation';
+import SalesOrderScreen from './sales-order';
 import ItemsScreen from './items';
 import AttendanceScreen from './attendance';
+import NewCustomerScreen from './new-customer';
+import NewQuotationScreen from './new-quotation';
+import NewSalesOrderScreen from './new-sales-order';
+import NewContactScreen from './new-contact';
 
 const Drawer = createDrawerNavigator();
 
@@ -82,6 +87,21 @@ export default function AppLayout() {
       </Drawer.Screen>
       <Drawer.Screen name="items" options={{ title: 'Items' }}>
         {() => <MainLayout><ItemsScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="sales-order" options={{ title: 'Sales Orders' }}>
+        {() => <MainLayout><SalesOrderScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="new-customer" options={{ title: 'New Customer' }}>
+        {() => <MainLayout><NewCustomerScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="new-quotation" options={{ title: 'New Quotation' }}>
+        {() => <MainLayout><NewQuotationScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="new-sales-order" options={{ title: 'New Sales Order' }}>
+        {() => <MainLayout><NewSalesOrderScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="new-contact" options={{ title: 'New Contact' }}>
+        {() => <MainLayout><NewContactScreen /></MainLayout>}
       </Drawer.Screen>
     </Drawer.Navigator>
   );

@@ -112,12 +112,6 @@ export default function ContactScreen() {
           <Text>No contacts found.</Text>
         </View>
       )}
-      <TouchableOpacity
-        style={styles.createButton}
-        onPress={() => router.push('/new-contact' as any)}
-      >
-        <Feather name="plus" size={24} color={theme.colors.white} />
-      </TouchableOpacity>
     </View>
   );
 }

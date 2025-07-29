@@ -210,9 +210,6 @@ export default function QuotationScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-        <TouchableOpacity style={styles.addButton} onPress={() => router.push('/(app)/new-quotation')}>
-          <Feather name="plus" size={24} color={theme.colors.white} />
-        </TouchableOpacity>
       </View>
       {loading ? (
         <View style={styles.center}>

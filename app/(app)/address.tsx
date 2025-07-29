@@ -102,12 +102,6 @@ export default function AddressScreen() {
           <Text>No addresses found.</Text>
         </View>
       )}
-      <TouchableOpacity
-        style={styles.createButton}
-        onPress={() => router.push('/new-address' as any)}
-      >
-        <Feather name="plus" size={24} color={theme.colors.white} />
-      </TouchableOpacity>
     </View>
   );
 }

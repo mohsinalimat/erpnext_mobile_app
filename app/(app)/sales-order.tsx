@@ -171,9 +171,6 @@ export default function SalesOrderScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-        <TouchableOpacity style={styles.addButton} onPress={() => router.push('/new-sales-order')}>
-          <Feather name="plus" size={24} color={theme.colors.white} />
-        </TouchableOpacity>
       </View>
       {loading ? (
         <View style={styles.center}>

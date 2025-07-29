@@ -85,7 +85,7 @@ export default function NewSalesOrderScreen() {
         setShowDatePicker(true);
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!customer || !date || !deliveryDate) {
             Alert.alert('Error', 'Please fill all required fields.');
             return;
@@ -102,11 +102,17 @@ export default function NewSalesOrderScreen() {
         };
 
         setLoading(true);
-        router.push({
-            pathname: '/sales-order-preview',
-            params: params as any,
-        });
-        setLoading(false);
+        try {
+            await router.push({
+                pathname: '/sales-order-preview',
+                params: params as any,
+            });
+        } catch (error) {
+            console.error('Failed to navigate:', error);
+            Alert.alert('Error', 'Failed to navigate to preview screen.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleItemChange = async (index: number, field: string, value: string, itemName?: string) => {

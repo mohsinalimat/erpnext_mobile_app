@@ -43,10 +43,22 @@ export default function NewAddressScreen() {
   const [linkNameSearchQuery, setLinkNameSearchQuery] = useState('');
   const [currentRowId, setCurrentRowId] = useState<number | null>(null);
   const [currentLink, setCurrentLink] = useState<any>(null);
+  const [isCountryModalVisible, setIsCountryModalVisible] = useState(false);
+  const [countrySearchQuery, setCountrySearchQuery] = useState('');
+  const [countries, setCountries] = useState<string[]>([]);
 
   const debouncedLinkNameSearchQuery = useDebounce(linkNameSearchQuery, 500);
 
   useEffect(() => {
+    const loadCountries = async () => {
+      try {
+        const data = await fetchDocTypeData('Country', ['name']);
+        setCountries(data.map((d: any) => d.name));
+      } catch (error) {
+        console.error('Error fetching countries:', error);
+      }
+    };
+    loadCountries();
     const loadDocTypes = async () => {
       try {
         const data = await fetchDocTypeData('DocType', ['name'], [['issingle', '=', 0]]);
@@ -157,12 +169,12 @@ export default function NewAddressScreen() {
           onChangeText={setState}
           placeholder="Enter state"
         />
-        <FormField
-          label="Country"
-          value={country}
-          onChangeText={setCountry}
-          placeholder="Enter country"
-        />
+        <TouchableOpacity
+          style={styles.tableInput}
+          onPress={() => setIsCountryModalVisible(true)}
+        >
+          <Text>{country || 'Select Country'}</Text>
+        </TouchableOpacity>
         <FormField
           label="Postal Code"
           value={postalCode}
@@ -281,6 +293,41 @@ export default function NewAddressScreen() {
         onPress={handleSaveAddress}
         disabled={loading}
       />
+
+      <Modal
+        transparent={true}
+        visible={isCountryModalVisible}
+        onRequestClose={() => setIsCountryModalVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setIsCountryModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <TextInput
+                style={styles.input}
+                placeholder="Search Country..."
+                value={countrySearchQuery}
+                onChangeText={setCountrySearchQuery}
+              />
+              <FlatList
+                data={countries.filter(c => c.toLowerCase().includes(countrySearchQuery.toLowerCase()))}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.modalItem}
+                    onPress={() => {
+                      setCountry(item);
+                      setIsCountryModalVisible(false);
+                      setCountrySearchQuery('');
+                    }}
+                  >
+                    <Text>{item}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
 
       <Modal
         transparent={true}

@@ -1,11 +1,14 @@
-import React, { useState, useLayoutEffect, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, Modal, FlatList, TouchableWithoutFeedback } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView, Modal, FlatList, TouchableWithoutFeedback, TextInput } from 'react-native';
 import { theme } from '@/constants/theme';
 import { Feather } from '@expo/vector-icons';
-import { router, useNavigation } from 'expo-router';
+import { router } from 'expo-router';
 import { createDoc, fetchDocTypeData, searchDoctype } from '@/services/api';
 import Checkbox from 'expo-checkbox';
 import { useDebounce } from '@/hooks/useDebounce';
+import Card from '@/components/common/Card';
+import FormField from '@/components/common/FormField';
+import Button from '@/components/common/Button';
 
 interface LinkNameData {
   id: string;
@@ -13,7 +16,6 @@ interface LinkNameData {
 }
 
 export default function NewAddressScreen() {
-  const navigation = useNavigation();
   const [addressTitle, setAddressTitle] = useState('');
   const [addressType, setAddressType] = useState('Billing');
   const [addressLine1, setAddressLine1] = useState('');
@@ -71,24 +73,12 @@ export default function NewAddressScreen() {
     searchLinkNames();
   }, [debouncedLinkNameSearchQuery, currentRowId]);
 
-  useEffect(() => {
-    console.log('Links state updated:', links);
-  }, [links]);
-
   const handleAddRow = () => {
     setLinks([...links, { id: links.length + 1, link_doctype: '', link_name: '', link_title: '' }]);
   };
 
   const handleRemoveRow = (id: number) => {
     setLinks(links.filter(row => row.id !== id));
-  };
-
-  const handleLinkChange = (id: number, field: string, value: string) => {
-    setLinks(prevLinks => 
-      prevLinks.map(row => 
-        row.id === id ? { ...row, [field]: value } : row
-      )
-    );
   };
 
   const handleSaveAddress = async () => {
@@ -128,192 +118,169 @@ export default function NewAddressScreen() {
     }
   };
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity onPress={handleSaveAddress} disabled={loading} style={{ backgroundColor: 'black', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8, marginRight: 15 }}>
-          <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>{loading ? 'Saving...' : 'Save'}</Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, loading, handleSaveAddress]);
-
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.label}>Address Title</Text>
-      <TextInput
-        style={styles.input}
-        value={addressTitle}
-        onChangeText={setAddressTitle}
-        placeholder="Enter Address Title"
-        placeholderTextColor={theme.colors.text.secondary}
-      />
-      <Text style={styles.label}>Address Type</Text>
-      <TextInput
-        style={styles.input}
-        value={addressType}
-        onChangeText={setAddressType}
-        placeholder="Enter Address Type"
-        placeholderTextColor={theme.colors.text.secondary}
-      />
-      <Text style={styles.label}>Address Line 1</Text>
-      <TextInput
-        style={styles.input}
-        value={addressLine1}
-        onChangeText={setAddressLine1}
-        placeholder="Enter address line 1"
-        placeholderTextColor={theme.colors.text.secondary}
-      />
-      <Text style={styles.label}>Address Line 2</Text>
-      <TextInput
-        style={styles.input}
-        value={addressLine2}
-        onChangeText={setAddressLine2}
-        placeholder="Enter address line 2"
-        placeholderTextColor={theme.colors.text.secondary}
-      />
-      <Text style={styles.label}>City/Town</Text>
-      <TextInput
-        style={styles.input}
-        value={city}
-        onChangeText={setCity}
-        placeholder="Enter city"
-        placeholderTextColor={theme.colors.text.secondary}
-      />
-      <Text style={styles.label}>State/Province</Text>
-      <TextInput
-        style={styles.input}
-        value={state}
-        onChangeText={setState}
-        placeholder="Enter state"
-        placeholderTextColor={theme.colors.text.secondary}
-      />
-      <Text style={styles.label}>Country</Text>
-      <TextInput
-        style={styles.input}
-        value={country}
-        onChangeText={setCountry}
-        placeholder="Enter country"
-        placeholderTextColor={theme.colors.text.secondary}
-      />
-      <Text style={styles.label}>Postal Code</Text>
-      <TextInput
-        style={styles.input}
-        value={postalCode}
-        onChangeText={setPostalCode}
-        placeholder="Enter postal code"
-        placeholderTextColor={theme.colors.text.secondary}
-      />
-      <Text style={styles.label}>Email Address</Text>
-      <TextInput
-        style={styles.input}
-        value={emailAddress}
-        onChangeText={setEmailAddress}
-        placeholder="Enter email address"
-        placeholderTextColor={theme.colors.text.secondary}
-        keyboardType="email-address"
-      />
-      <Text style={styles.label}>Google Map Link</Text>
-      <TextInput
-        style={styles.input}
-        value={googleMapLink}
-        onChangeText={setGoogleMapLink}
-        placeholder="Enter Google Map Link"
-        placeholderTextColor={theme.colors.text.secondary}
-      />
-      <Text style={styles.label}>Phone</Text>
-      <TextInput
-        style={styles.input}
-        value={phone}
-        onChangeText={setPhone}
-        placeholder="Enter phone number"
-        placeholderTextColor={theme.colors.text.secondary}
-        keyboardType="phone-pad"
-      />
-      <Text style={styles.label}>Fax</Text>
-      <TextInput
-        style={styles.input}
-        value={fax}
-        onChangeText={setFax}
-        placeholder="Enter fax number"
-        placeholderTextColor={theme.colors.text.secondary}
-      />
-      <Text style={styles.label}>Tax Category</Text>
-      <TextInput
-        style={styles.input}
-        value={taxCategory}
-        onChangeText={setTaxCategory}
-        placeholder="Enter tax category"
-        placeholderTextColor={theme.colors.text.secondary}
-      />
-      <View style={styles.checkboxContainer}>
-        <Checkbox style={styles.checkbox} value={isPreferredBilling} onValueChange={setIsPreferredBilling} />
-        <Text style={styles.checkboxLabel}>Preferred Billing Address</Text>
-      </View>
-      <View style={styles.checkboxContainer}>
-        <Checkbox style={styles.checkbox} value={isPreferredShipping} onValueChange={setIsPreferredShipping} />
-        <Text style={styles.checkboxLabel}>Preferred Shipping Address</Text>
-      </View>
-      <View style={styles.checkboxContainer}>
-        <Checkbox style={styles.checkbox} value={disabled} onValueChange={setDisabled} />
-        <Text style={styles.checkboxLabel}>Disabled</Text>
-      </View>
-      <View style={styles.checkboxContainer}>
-        <Checkbox style={styles.checkbox} value={isCompanyAddress} onValueChange={setIsCompanyAddress} />
-        <Text style={styles.checkboxLabel}>Is Your Company Address</Text>
-      </View>
+      <Card>
+        <FormField
+          label="Address Title"
+          value={addressTitle}
+          onChangeText={setAddressTitle}
+          placeholder="Enter Address Title"
+        />
+        <FormField
+          label="Address Type"
+          value={addressType}
+          onChangeText={setAddressType}
+          placeholder="Enter Address Type"
+        />
+        <FormField
+          label="Address Line 1"
+          value={addressLine1}
+          onChangeText={setAddressLine1}
+          placeholder="Enter address line 1"
+        />
+        <FormField
+          label="Address Line 2"
+          value={addressLine2}
+          onChangeText={setAddressLine2}
+          placeholder="Enter address line 2"
+        />
+        <FormField
+          label="City/Town"
+          value={city}
+          onChangeText={setCity}
+          placeholder="Enter city"
+        />
+        <FormField
+          label="State/Province"
+          value={state}
+          onChangeText={setState}
+          placeholder="Enter state"
+        />
+        <FormField
+          label="Country"
+          value={country}
+          onChangeText={setCountry}
+          placeholder="Enter country"
+        />
+        <FormField
+          label="Postal Code"
+          value={postalCode}
+          onChangeText={setPostalCode}
+          placeholder="Enter postal code"
+        />
+        <FormField
+          label="Email Address"
+          value={emailAddress}
+          onChangeText={setEmailAddress}
+          placeholder="Enter email address"
+          keyboardType="email-address"
+        />
+        <FormField
+          label="Google Map Link"
+          value={googleMapLink}
+          onChangeText={setGoogleMapLink}
+          placeholder="Enter Google Map Link"
+        />
+        <FormField
+          label="Phone"
+          value={phone}
+          onChangeText={setPhone}
+          placeholder="Enter phone number"
+          keyboardType="phone-pad"
+        />
+        <FormField
+          label="Fax"
+          value={fax}
+          onChangeText={setFax}
+          placeholder="Enter fax number"
+        />
+        <FormField
+          label="Tax Category"
+          value={taxCategory}
+          onChangeText={setTaxCategory}
+          placeholder="Enter tax category"
+        />
+      </Card>
 
-      <Text style={styles.label}>Links</Text>
-      <View style={styles.table}>
-        <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderText, { flex: 0.5 }]}>No.</Text>
-          <Text style={styles.tableHeaderText}>Link Document Type</Text>
-          <Text style={styles.tableHeaderText}>Link Name</Text>
-          <Text style={styles.tableHeaderText}>Link Title</Text>
-          <Text style={[styles.tableHeaderText, { flex: 0.5 }]}></Text>
+      <Card>
+        <View style={styles.checkboxContainer}>
+          <Checkbox style={styles.checkbox} value={isPreferredBilling} onValueChange={setIsPreferredBilling} />
+          <Text style={styles.checkboxLabel}>Preferred Billing Address</Text>
         </View>
-        {links.map((row, index) => (
-          <View key={`${row.id}-${row.link_doctype}-${row.link_name}`} style={styles.tableRow}>
-            <Text style={[styles.tableCell, { flex: 0.5 }]}>{index + 1}</Text>
-            <TouchableOpacity
-              style={styles.tableInput}
-              onPress={() => {
-                setCurrentRowId(row.id);
-                setCurrentLink(row);
-                setIsDocTypeModalVisible(true);
-              }}
-            >
-              <Text>{row.link_doctype || 'Select Document Type'}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.tableInput}
-              onPress={() => {
-                if (row.link_doctype) {
+        <View style={styles.checkboxContainer}>
+          <Checkbox style={styles.checkbox} value={isPreferredShipping} onValueChange={setIsPreferredShipping} />
+          <Text style={styles.checkboxLabel}>Preferred Shipping Address</Text>
+        </View>
+        <View style={styles.checkboxContainer}>
+          <Checkbox style={styles.checkbox} value={disabled} onValueChange={setDisabled} />
+          <Text style={styles.checkboxLabel}>Disabled</Text>
+        </View>
+        <View style={styles.checkboxContainer}>
+          <Checkbox style={styles.checkbox} value={isCompanyAddress} onValueChange={setIsCompanyAddress} />
+          <Text style={styles.checkboxLabel}>Is Your Company Address</Text>
+        </View>
+      </Card>
+
+      <Card>
+        <Text style={styles.label}>Links</Text>
+        <View style={styles.table}>
+          <View style={styles.tableHeader}>
+            <Text style={[styles.tableHeaderText, { flex: 0.5 }]}>No.</Text>
+            <Text style={styles.tableHeaderText}>Link Document Type</Text>
+            <Text style={styles.tableHeaderText}>Link Name</Text>
+            <Text style={styles.tableHeaderText}>Link Title</Text>
+            <Text style={[styles.tableHeaderText, { flex: 0.5 }]}></Text>
+          </View>
+          {links.map((row, index) => (
+            <View key={`${row.id}-${row.link_doctype}-${row.link_name}`} style={styles.tableRow}>
+              <Text style={[styles.tableCell, { flex: 0.5 }]}>{index + 1}</Text>
+              <TouchableOpacity
+                style={styles.tableInput}
+                onPress={() => {
                   setCurrentRowId(row.id);
                   setCurrentLink(row);
-                  setIsLinkNameModalVisible(true);
-                } else {
-                  Alert.alert('Error', 'Please select a Link Document Type first.');
-                }
-              }}
-            >
-              <Text>{row.link_name || 'Select Link Name'}</Text>
-            </TouchableOpacity>
-            <TextInput
-              style={[styles.tableInput, { backgroundColor: theme.colors.gray[100] }]}
-              value={row.link_title}
-              editable={false}
-              placeholder="Link Title"
-            />
-            <TouchableOpacity onPress={() => handleRemoveRow(row.id)} style={[styles.tableCell, { flex: 0.5, alignItems: 'center' }]}>
-              <Feather name="trash-2" size={20} color={theme.colors.error[500]} />
-            </TouchableOpacity>
-          </View>
-        ))}
-      </View>
-      <TouchableOpacity onPress={handleAddRow} style={styles.addRowButton}>
-        <Text style={styles.addRowButtonText}>Add Row</Text>
-      </TouchableOpacity>
+                  setIsDocTypeModalVisible(true);
+                }}
+              >
+                <Text>{row.link_doctype || 'Select Document Type'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.tableInput}
+                onPress={() => {
+                  if (row.link_doctype) {
+                    setCurrentRowId(row.id);
+                    setCurrentLink(row);
+                    setIsLinkNameModalVisible(true);
+                  } else {
+                    Alert.alert('Error', 'Please select a Link Document Type first.');
+                  }
+                }}
+              >
+                <Text>{row.link_name || 'Select Link Name'}</Text>
+              </TouchableOpacity>
+              <TextInput
+                style={[styles.tableInput, { backgroundColor: theme.colors.gray[100] }]}
+                value={row.link_title}
+                editable={false}
+                placeholder="Link Title"
+              />
+              <TouchableOpacity onPress={() => handleRemoveRow(row.id)} style={[styles.tableCell, { flex: 0.5, alignItems: 'center' }]}>
+                <Feather name="trash-2" size={20} color={theme.colors.error[500]} />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+        <TouchableOpacity onPress={handleAddRow} style={styles.addRowButton}>
+          <Text style={styles.addRowButtonText}>Add Row</Text>
+        </TouchableOpacity>
+      </Card>
+
+      <Button
+        title={loading ? 'Saving...' : 'Save'}
+        onPress={handleSaveAddress}
+        disabled={loading}
+      />
 
       <Modal
         transparent={true}

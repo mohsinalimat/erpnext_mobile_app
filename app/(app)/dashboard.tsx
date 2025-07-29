@@ -8,7 +8,11 @@ import DashboardCard from '@/components/dashboard/DashboardCard';
 import DashboardChart from '@/components/dashboard/DashboardChart';
 import AlertCard from '@/components/dashboard/AlertCard';
 
-export default function DashboardScreen() {
+import { DrawerScreenProps } from '@react-navigation/drawer';
+
+type Props = DrawerScreenProps<any, any>;
+
+export default function DashboardScreen({ navigation, route }: Props) {
   const { user } = useAuth();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Modal, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Alert, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Modal, FlatList, TextInput } from 'react-native';
 import { getCustomers, getItems, getItemPrice, getSalesTaxesAndChargesTemplates, getSalesTaxesAndChargesTemplateByName, getCustomerContacts, getCustomerAddresses, uploadFile } from '@/services/erpnext';
 import { createQuotation } from '@/services/erpnext';
 import { Feather } from '@expo/vector-icons';
@@ -8,7 +8,9 @@ import { theme } from '@/constants/theme';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Picker } from '@react-native-picker/picker';
+import Card from '@/components/common/Card';
+import FormField from '@/components/common/FormField';
+import Button from '@/components/common/Button';
 
 interface Customer {
   name: string;
@@ -75,6 +77,14 @@ export default function NewQuotationScreen() {
   const [itemModalVisible, setItemModalVisible] = useState(false);
   const [currentItemIndex, setCurrentItemIndex] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [contactSearchQuery, setContactSearchQuery] = useState('');
+  const [addressSearchQuery, setAddressSearchQuery] = useState('');
+  const [customerModalVisible, setCustomerModalVisible] = useState(false);
+  const [contactModalVisible, setContactModalVisible] = useState(false);
+  const [addressModalVisible, setAddressModalVisible] = useState(false);
+  const [salesTaxesModalVisible, setSalesTaxesModalVisible] = useState(false);
+  const [salesTaxesSearchQuery, setSalesTaxesSearchQuery] = useState('');
   const params = useLocalSearchParams();
 
   const handleImagePick = async (index: number) => {
@@ -261,154 +271,277 @@ export default function NewQuotationScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Feather name="arrow-left" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>New Quotation</Text>
-        <TouchableOpacity onPress={handleSave} disabled={loading}>
-          <Text style={[styles.headerSave, loading && styles.disabled]}>Save</Text>
-        </TouchableOpacity>
-      </View>
       <ScrollView style={styles.container}>
-        <Text style={styles.label}>Customer</Text>
-        <Picker
-          selectedValue={selectedCustomer}
-          onValueChange={(itemValue) => setSelectedCustomer(itemValue)}
-          style={styles.input}
-        >
-          <Picker.Item label="Select Customer" value="" />
-          {customers.map(c => <Picker.Item key={c.name} label={c.customer_name} value={c.name} />)}
-        </Picker>
-
-        <Text style={styles.label}>Contact</Text>
-        <Picker
-          selectedValue={selectedContact}
-          onValueChange={(itemValue) => setSelectedContact(itemValue)}
-          style={styles.input}
-          enabled={!!selectedCustomer}
-        >
-          <Picker.Item label="Select Contact" value="" />
-          {contacts.map(c => <Picker.Item key={c.name} label={`${c.first_name} ${c.last_name || ''}`} value={c.name} />)}
-        </Picker>
-
-        <Text style={styles.label}>Address</Text>
-        <Picker
-          selectedValue={selectedAddress}
-          onValueChange={(itemValue) => setSelectedAddress(itemValue)}
-          style={styles.input}
-          enabled={!!selectedCustomer}
-        >
-          <Picker.Item label="Select Address" value="" />
-          {addresses.map(a => <Picker.Item key={a.name} label={`${a.address_line1}, ${a.city}`} value={a.name} />)}
-        </Picker>
-
-        <Text style={styles.label}>Date</Text>
-        <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-          <Text style={styles.input}>{date.toDateString()}</Text>
-        </TouchableOpacity>
-        {showDatePicker && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display="default"
-            onChange={(event, selectedDate) => {
-              setShowDatePicker(false);
-              if (selectedDate) {
-                setDate(selectedDate);
-              }
-            }}
-          />
-        )}
-
-        <Text style={styles.label}>Valid Till</Text>
-        <TouchableOpacity onPress={() => setShowValidTillPicker(true)}>
-          <Text style={styles.input}>{validTill.toDateString()}</Text>
-        </TouchableOpacity>
-        {showValidTillPicker && (
-          <DateTimePicker
-            value={validTill}
-            mode="date"
-            display="default"
-            onChange={(event, selectedDate) => {
-              setShowValidTillPicker(false);
-              if (selectedDate) {
-                setValidTill(selectedDate);
-              }
-            }}
-          />
-        )}
-
-        <Text style={styles.subHeader}>Items</Text>
-        <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderText, styles.itemHeaderText]}>Item</Text>
-          <Text style={[styles.tableHeaderText, styles.qtyHeaderText]}>Qty</Text>
-          <Text style={[styles.tableHeaderText, styles.rateHeaderText]}>Rate</Text>
-          <Text style={[styles.tableHeaderText, styles.amountHeaderText]}>Amount</Text>
-          <Text style={[styles.tableHeaderText, styles.actionHeaderText]}>Image</Text>
-          <Text style={[styles.tableHeaderText, styles.actionHeaderText]}> </Text>
-        </View>
-        {items.map((item, index) => (
-          <View key={item.key} style={styles.tableRow}>
-            <TouchableOpacity
-              style={styles.itemCell}
-              onPress={() => {
-                setCurrentItemIndex(index);
-                setItemModalVisible(true);
+        <Card>
+          <TouchableOpacity onPress={() => setCustomerModalVisible(true)}>
+            <FormField
+              label="Customer"
+              value={selectedCustomer ? customers.find(c => c.name === selectedCustomer)?.customer_name : 'Select Customer'}
+              editable={false}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setContactModalVisible(true)} disabled={!selectedCustomer}>
+            <FormField
+              label="Contact"
+              value={selectedContact ? contacts.find(c => c.name === selectedContact)?.first_name : 'Select Contact'}
+              editable={false}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setAddressModalVisible(true)} disabled={!selectedCustomer}>
+            <FormField
+              label="Address"
+              value={selectedAddress ? addresses.find(a => a.name === selectedAddress)?.address_line1 : 'Select Address'}
+              editable={false}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+            <FormField
+              label="Date"
+              value={date.toISOString().split('T')[0]}
+              editable={false}
+            />
+          </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              value={date}
+              mode="date"
+              display="default"
+              onChange={(event, selectedDate) => {
+                setShowDatePicker(false);
+                if (selectedDate) {
+                  setDate(selectedDate);
+                }
               }}
-            >
-              <Text style={styles.tableCell}>{item.item_code || 'Select Item'}</Text>
-            </TouchableOpacity>
-            <TextInput
-              style={[styles.tableCell, styles.qtyCell]}
-              value={String(item.qty)}
-              onChangeText={(value) => handleItemChange(value, index, 'qty')}
-              keyboardType="numeric"
             />
-            <TextInput
-              style={[styles.tableCell, styles.rateCell]}
-              value={String(item.rate)}
-              onChangeText={(value) => handleItemChange(value, index, 'rate')}
-              keyboardType="numeric"
-              editable={item.rate_is_editable}
+          )}
+          <TouchableOpacity onPress={() => setShowValidTillPicker(true)}>
+            <FormField
+              label="Valid Till"
+              value={validTill.toISOString().split('T')[0]}
+              editable={false}
             />
-            <Text style={[styles.tableCell, styles.amountCell]}>{item.amount.toFixed(2)}</Text>
-            <TouchableOpacity onPress={() => handleImagePick(index)} style={styles.deleteButton}>
-              <Feather name="camera" size={20} color={theme.colors.primary[500]} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => removeItem(index)} style={styles.deleteButton}>
-              <Feather name="trash-2" size={20} color={theme.colors.error[500]} />
-            </TouchableOpacity>
-          </View>
-        ))}
-        <TouchableOpacity onPress={addNewItem} style={styles.addItemButton}>
-          <Text style={styles.addItemButtonText}>Add New Item</Text>
-        </TouchableOpacity>
+          </TouchableOpacity>
+          {showValidTillPicker && (
+            <DateTimePicker
+              value={validTill}
+              mode="date"
+              display="default"
+              onChange={(event, selectedDate) => {
+                setShowValidTillPicker(false);
+                if (selectedDate) {
+                  setValidTill(selectedDate);
+                }
+              }}
+            />
+          )}
+        </Card>
 
-        <Text style={styles.label}>Sales Taxes and Charges Template</Text>
-        <Picker
-          selectedValue={selectedSalesTaxesAndChargesTemplate}
-          onValueChange={(itemValue) => handleTemplateChange(itemValue)}
-          style={styles.input}
-        >
-          <Picker.Item label="Select Template" value="" />
-          {salesTaxesAndChargesTemplates.map(t => <Picker.Item key={t.name} label={t.title} value={t.name} />)}
-        </Picker>
-
-        {taxes.length > 0 && (
-          <View>
-            <Text style={styles.subHeader}>Taxes</Text>
-            {taxes.map((tax, index) => (
-              <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text>{tax.type} @ {tax.rate}%</Text>
-                <Text>{tax.total.toFixed(2)}</Text>
-              </View>
-            ))}
+        <Card>
+          <Text style={styles.subHeader}>Items</Text>
+          <View style={styles.tableHeader}>
+            <Text style={[styles.tableHeaderText, styles.itemHeaderText]}>Item</Text>
+            <Text style={[styles.tableHeaderText, styles.qtyHeaderText]}>Qty</Text>
+            <Text style={[styles.tableHeaderText, styles.rateHeaderText]}>Rate</Text>
+            <Text style={[styles.tableHeaderText, styles.amountHeaderText]}>Amount</Text>
+            <Text style={[styles.tableHeaderText, styles.actionHeaderText]}>Image</Text>
+            <Text style={[styles.tableHeaderText, styles.actionHeaderText]}> </Text>
           </View>
-        )}
+          {items.map((item, index) => (
+            <View key={item.key} style={styles.tableRow}>
+              <TouchableOpacity
+                style={styles.itemCell}
+                onPress={() => {
+                  setCurrentItemIndex(index);
+                  setItemModalVisible(true);
+                }}
+              >
+                <Text style={styles.tableCell}>{item.item_code || 'Select Item'}</Text>
+              </TouchableOpacity>
+              <FormField
+                style={[styles.tableCell, styles.qtyCell]}
+                value={String(item.qty)}
+                onChangeText={(value: string) => handleItemChange(value, index, 'qty')}
+                keyboardType="numeric"
+              />
+              <FormField
+                style={[styles.tableCell, styles.rateCell]}
+                value={String(item.rate)}
+                onChangeText={(value: string) => handleItemChange(value, index, 'rate')}
+                keyboardType="numeric"
+                editable={item.rate_is_editable}
+              />
+              <Text style={[styles.tableCell, styles.amountCell]}>{item.amount.toFixed(2)}</Text>
+              <TouchableOpacity onPress={() => handleImagePick(index)} style={styles.deleteButton}>
+                <Feather name="camera" size={20} color={theme.colors.primary[500]} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => removeItem(index)} style={styles.deleteButton}>
+                <Feather name="trash-2" size={20} color={theme.colors.error[500]} />
+              </TouchableOpacity>
+            </View>
+          ))}
+          <TouchableOpacity onPress={addNewItem} style={styles.addItemButton}>
+            <Text style={styles.addItemButtonText}>Add New Item</Text>
+          </TouchableOpacity>
+        </Card>
+
+        <Card>
+          <TouchableOpacity onPress={() => setSalesTaxesModalVisible(true)}>
+            <FormField
+              label="Sales Taxes and Charges Template"
+              value={selectedSalesTaxesAndChargesTemplate ? salesTaxesAndChargesTemplates.find(t => t.name === selectedSalesTaxesAndChargesTemplate)?.title : 'Select Template'}
+              editable={false}
+            />
+          </TouchableOpacity>
+
+          {taxes.length > 0 && (
+            <View>
+              <Text style={styles.subHeader}>Taxes</Text>
+              {taxes.map((tax, index) => (
+                <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text>{tax.type} @ {tax.rate}%</Text>
+                  <Text>{tax.total.toFixed(2)}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </Card>
 
         {loading && <ActivityIndicator size="large" color={theme.colors.primary[500]} />}
+        <Button
+          title={loading ? 'Saving...' : 'Save'}
+          onPress={handleSave}
+          disabled={loading}
+        />
       </ScrollView>
+
+      {/* Customer Modal */}
+      <Modal
+        visible={customerModalVisible}
+        animationType="slide"
+        onRequestClose={() => setCustomerModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search for a customer..."
+            value={customerSearchQuery}
+            onChangeText={setCustomerSearchQuery}
+          />
+          <FlatList
+            data={customers.filter(c => c.customer_name.toLowerCase().includes(customerSearchQuery.toLowerCase()))}
+            keyExtractor={(item) => item.name}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.modalItem}
+                onPress={() => {
+                  setSelectedCustomer(item.name);
+                  setCustomerModalVisible(false);
+                  setCustomerSearchQuery('');
+                }}
+              >
+                <Text>{item.customer_name}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </Modal>
+
+      {/* Contact Modal */}
+      <Modal
+        visible={contactModalVisible}
+        animationType="slide"
+        onRequestClose={() => setContactModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search for a contact..."
+            value={contactSearchQuery}
+            onChangeText={setContactSearchQuery}
+          />
+          <FlatList
+            data={contacts.filter(c => c.first_name.toLowerCase().includes(contactSearchQuery.toLowerCase()))}
+            keyExtractor={(item) => item.name}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.modalItem}
+                onPress={() => {
+                  setSelectedContact(item.name);
+                  setContactModalVisible(false);
+                  setContactSearchQuery('');
+                }}
+              >
+                <Text>{`${item.first_name} ${item.last_name || ''}`}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </Modal>
+
+      {/* Address Modal */}
+      <Modal
+        visible={addressModalVisible}
+        animationType="slide"
+        onRequestClose={() => setAddressModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search for an address..."
+            value={addressSearchQuery}
+            onChangeText={setAddressSearchQuery}
+          />
+          <FlatList
+            data={addresses.filter(a => a.address_line1.toLowerCase().includes(addressSearchQuery.toLowerCase()))}
+            keyExtractor={(item) => item.name}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.modalItem}
+                onPress={() => {
+                  setSelectedAddress(item.name);
+                  setAddressModalVisible(false);
+                  setAddressSearchQuery('');
+                }}
+              >
+                <Text>{`${item.address_line1}, ${item.city}`}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </Modal>
+
+      {/* Sales Taxes and Charges Template Modal */}
+      <Modal
+        visible={salesTaxesModalVisible}
+        animationType="slide"
+        onRequestClose={() => setSalesTaxesModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search for a template..."
+            value={salesTaxesSearchQuery}
+            onChangeText={setSalesTaxesSearchQuery}
+          />
+          <FlatList
+            data={salesTaxesAndChargesTemplates.filter(t => t.title.toLowerCase().includes(salesTaxesSearchQuery.toLowerCase()))}
+            keyExtractor={(item) => item.name}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.modalItem}
+                onPress={() => {
+                  handleTemplateChange(item.name);
+                  setSalesTaxesModalVisible(false);
+                  setSalesTaxesSearchQuery('');
+                }}
+              >
+                <Text>{item.title}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </Modal>
+
       <Modal
         visible={itemModalVisible}
         animationType="slide"
@@ -467,42 +600,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.gray[200],
   },
-  itemText: {
-    padding: 12,
-    fontSize: 16,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: theme.colors.white,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    fontSize: 16,
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: theme.colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray[200],
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  headerSave: {
-    fontSize: 18,
-    color: theme.colors.primary[500],
-    fontWeight: 'bold',
-  },
-  disabled: {
-    color: theme.colors.gray[400],
-  },
   tableHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -558,23 +655,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addItemButton: {
-    backgroundColor: theme.colors.gray[200],
+    backgroundColor: theme.colors.primary[500],
     padding: 12,
     borderRadius: 8,
-    alignSelf: 'flex-start',
-    marginVertical: 8,
-    borderWidth: 1,
-    borderColor: theme.colors.gray[300],
     alignItems: 'center',
+    marginBottom: 16,
   },
   addItemButtonText: {
-    color: 'black',
-    fontWeight: 'bold'
+    color: theme.colors.white,
+    fontSize: 16,
   },
   subHeader: {
     fontSize: 20,
     fontWeight: 'bold',
     marginTop: 16,
     marginBottom: 8,
+    color: theme.colors.text.primary,
   },
 });

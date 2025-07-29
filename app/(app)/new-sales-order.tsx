@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useMemo, useLayoutEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert, ScrollView, Modal, FlatList, TouchableOpacity, Platform } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text, StyleSheet, Alert, ScrollView, Modal, FlatList, TouchableOpacity, Platform } from 'react-native';
 import { getItems, getCustomers } from '@/services/offline';
 import { getItemPrice } from '@/services/erpnext';
-import { useTheme } from '@/context/ThemeContext';
 import { useNetwork } from '@/context/NetworkContext';
-import { router, useNavigation } from 'expo-router';
+import { router } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import Card from '@/components/common/Card';
+import FormField from '@/components/common/FormField';
+import Button from '@/components/common/Button';
+import { theme } from '@/constants/theme';
 
 export default function NewSalesOrderScreen() {
-    const { theme } = useTheme();
-    const navigation = useNavigation();
     const { isConnected } = useNetwork();
     const [customer, setCustomer] = useState('');
     const [customerName, setCustomerName] = useState('Select Customer');
@@ -92,20 +93,20 @@ export default function NewSalesOrderScreen() {
 
         const params = {
             customer,
-            customerName,
-            poNo,
-            poDate: formatDate(poDate),
-            date: formatDate(date),
-            deliveryDate: formatDate(deliveryDate),
-            items: JSON.stringify(items),
+            customer_name: customerName,
+            po_no: poNo,
+            po_date: formatDate(poDate),
+            transaction_date: formatDate(date),
+            delivery_date: formatDate(deliveryDate),
+            items: JSON.stringify(items.map(item => ({ ...item, item_name: undefined }))),
         };
 
-        console.log('Navigating to sales-order-preview with params:', params); // Add this log
-
+        setLoading(true);
         router.push({
-            pathname: '/sales-order-preview', // Reverted to absolute path
-            params,
+            pathname: '/sales-order-preview',
+            params: params as any,
         });
+        setLoading(false);
     };
 
     const handleItemChange = async (index: number, field: string, value: string, itemName?: string) => {
@@ -161,161 +162,105 @@ export default function NewSalesOrderScreen() {
         setCustomerSearchQuery('');
     };
 
-    const styles = StyleSheet.create({
-        container: {
-            flex: 1,
-            padding: 16,
-            backgroundColor: theme.colors.background,
-        },
-        label: {
-            fontSize: 16,
-            marginBottom: 8,
-            color: theme.colors.text.primary,
-        },
-        input: {
-            backgroundColor: theme.colors.white,
-            padding: 12,
-            borderRadius: 8,
-            marginBottom: 16,
-            fontSize: 16,
-            color: theme.colors.text.primary,
-        },
-        itemContainer: {
-            marginBottom: 16,
-            padding: 12,
-            borderRadius: 8,
-            backgroundColor: theme.colors.gray[100],
-        },
-        itemRow: {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-        },
-        itemInput: {
-            flex: 1,
-            backgroundColor: theme.colors.white,
-            padding: 8,
-            borderRadius: 4,
-            marginRight: 8,
-            fontSize: 14,
-        },
-        modalContainer: {
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: 'rgba(0,0,0,0.5)',
-        },
-        modalContent: {
-            width: '90%',
-            height: '80%',
-            backgroundColor: theme.colors.background,
-            borderRadius: 8,
-            padding: 16,
-        },
-        searchInput: {
-            backgroundColor: theme.colors.white,
-            padding: 12,
-            borderRadius: 8,
-            marginBottom: 16,
-            fontSize: 16,
-        },
-        itemText: {
-            padding: 12,
-            fontSize: 16,
-            borderBottomWidth: 1,
-            borderBottomColor: theme.colors.gray[200],
-        },
-        pickerButton: {
-            backgroundColor: theme.colors.white,
-            padding: 12,
-            borderRadius: 8,
-            marginBottom: 8,
-            justifyContent: 'center',
-        },
-        pickerButtonText: {
-            fontSize: 16,
-            color: theme.colors.text.primary,
-        },
-        saveButton: {
-            backgroundColor: theme.colors.primary[500],
-            paddingVertical: 12,
-            paddingHorizontal: 15,
-            borderRadius: 8,
-            alignItems: 'center',
-            marginTop: 16,
-        },
-        saveButtonText: {
-            color: theme.colors.white,
-            fontSize: 16,
-            fontWeight: 'bold',
-        },
-    });
-
-    useLayoutEffect(() => {
-        navigation.setOptions({
-            headerRight: () => (
-                <TouchableOpacity onPress={handleSave} style={{ backgroundColor: 'black', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8, marginRight: 15 }}>
-                    <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>Save</Text>
-                </TouchableOpacity>
-            ),
-        });
-    }, [navigation, handleSave]);
-
     return (
         <ScrollView style={styles.container}>
-            <Text style={styles.label}>Customer</Text>
-            <TouchableOpacity onPress={() => setCustomerModalVisible(true)} style={styles.pickerButton}>
-                <Text style={styles.pickerButtonText}>{customerName}</Text>
-            </TouchableOpacity>
+            <Card>
+                <TouchableOpacity onPress={() => setCustomerModalVisible(true)}>
+                    <FormField
+                        label="Customer"
+                        value={customerName}
+                        editable={false}
+                        placeholder="Select Customer"
+                        placeholderTextColor={theme.colors.text.secondary}
+                    />
+                </TouchableOpacity>
+                <FormField
+                    label="Customer's Purchase Order"
+                    value={poNo}
+                    onChangeText={setPoNo}
+                    placeholder="Enter PO number"
+                    placeholderTextColor={theme.colors.text.secondary}
+                />
+                <TouchableOpacity onPress={() => showDatepickerFor('poDate')}>
+                    <FormField
+                        label="Customer's Purchase Order Date"
+                        value={formatDate(poDate)}
+                        editable={false}
+                        placeholder="Select Date"
+                        placeholderTextColor={theme.colors.text.secondary}
+                    />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => showDatepickerFor('date')}>
+                    <FormField
+                        label="*Date"
+                        value={formatDate(date)}
+                        editable={false}
+                        placeholder="Select Date"
+                        placeholderTextColor={theme.colors.text.secondary}
+                    />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => showDatepickerFor('deliveryDate')}>
+                    <FormField
+                        label="*Delivery Date"
+                        value={formatDate(deliveryDate)}
+                        editable={false}
+                        placeholder="Select Date"
+                        placeholderTextColor={theme.colors.text.secondary}
+                    />
+                </TouchableOpacity>
+            </Card>
 
-            <Text style={styles.label}>Customer's Purchase Order</Text>
-            <TextInput style={styles.input} value={poNo} onChangeText={setPoNo} placeholder="Enter PO number" />
-
-            <Text style={styles.label}>Customer's Purchase Order Date</Text>
-            <TouchableOpacity onPress={() => showDatepickerFor('poDate')} style={styles.pickerButton}>
-                <Text style={styles.pickerButtonText}>{formatDate(poDate)}</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.label}>*Date</Text>
-            <TouchableOpacity onPress={() => showDatepickerFor('date')} style={styles.pickerButton}>
-                <Text style={styles.pickerButtonText}>{formatDate(date)}</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.label}>*Delivery Date</Text>
-            <TouchableOpacity onPress={() => showDatepickerFor('deliveryDate')} style={styles.pickerButton}>
-                <Text style={styles.pickerButtonText}>{formatDate(deliveryDate)}</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.label}>Items</Text>
-            {items.map((item, index) => (
-                <View key={index} style={styles.itemContainer}>
-                    <TouchableOpacity onPress={() => openItemModal(index)} style={styles.pickerButton}>
-                        <Text style={styles.pickerButtonText}>{item.item_name}</Text>
-                    </TouchableOpacity>
-                    <View style={styles.itemRow}>
-                        <TextInput
-                            style={styles.itemInput}
-                            value={item.qty}
-                            onChangeText={(value) => handleItemChange(index, 'qty', value)}
-                            placeholder="Quantity"
-                            keyboardType="numeric"
-                        />
-                        <TextInput
-                            style={styles.itemInput}
-                            value={item.rate}
-                            onChangeText={(value) => handleItemChange(index, 'rate', value)}
-                            placeholder="Rate"
-                            keyboardType="numeric"
-                        />
-                        <TextInput
-                            style={[styles.itemInput, { marginRight: 0 }]}
-                            value={item.amount}
-                            editable={false}
-                            placeholder="Amount"
-                        />
+            <Card>
+                <Text style={styles.label}>Items</Text>
+                {items.map((item, index) => (
+                    <View key={index} style={styles.itemContainer}>
+                        <TouchableOpacity onPress={() => openItemModal(index)}>
+                            <FormField
+                                label="Item"
+                                value={item.item_name}
+                                editable={false}
+                                placeholder="Select Item"
+                                placeholderTextColor={theme.colors.text.secondary}
+                            />
+                        </TouchableOpacity>
+                        <View style={styles.itemRow}>
+                            <FormField
+                                style={styles.itemInput}
+                                value={item.qty}
+                                onChangeText={(value) => handleItemChange(index, 'qty', value)}
+                                placeholder="Quantity"
+                                keyboardType="numeric"
+                                placeholderTextColor={theme.colors.text.secondary}
+                            />
+                            <FormField
+                                style={styles.itemInput}
+                                value={item.rate}
+                                onChangeText={(value) => handleItemChange(index, 'rate', value)}
+                                placeholder="Rate"
+                                keyboardType="numeric"
+                                placeholderTextColor={theme.colors.text.secondary}
+                            />
+                            <FormField
+                                style={[styles.itemInput, { marginRight: 0 }]}
+                                value={item.amount}
+                                editable={false}
+                                placeholder="Amount"
+                                placeholderTextColor={theme.colors.text.secondary}
+                            />
+                        </View>
                     </View>
-                </View>
-            ))}
-            <Button title="Add Item" onPress={addItem} />
+                ))}
+                <TouchableOpacity style={styles.addRowButton} onPress={addItem}>
+                    <Text style={styles.addRowButtonText}>Add Item</Text>
+                </TouchableOpacity>
+            </Card>
+
+            <Button
+                title={loading ? 'Saving...' : 'Save'}
+                onPress={handleSave}
+                disabled={loading}
+                style={{ marginBottom: 16 }}
+            />
 
             {showDatePicker && (
                 <DateTimePicker
@@ -336,11 +281,12 @@ export default function NewSalesOrderScreen() {
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <TextInput
+                        <FormField
                             style={styles.searchInput}
                             placeholder="Search for an item..."
                             value={itemSearchQuery}
                             onChangeText={setItemSearchQuery}
+                            placeholderTextColor={theme.colors.text.secondary}
                         />
                         <FlatList
                             data={filteredItems}
@@ -364,11 +310,12 @@ export default function NewSalesOrderScreen() {
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <TextInput
+                        <FormField
                             style={styles.searchInput}
                             placeholder="Search for a customer..."
                             value={customerSearchQuery}
                             onChangeText={setCustomerSearchQuery}
+                            placeholderTextColor={theme.colors.text.secondary}
                         />
                         <FlatList
                             data={filteredCustomers}
@@ -386,3 +333,60 @@ export default function NewSalesOrderScreen() {
         </ScrollView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 16,
+        backgroundColor: theme.colors.background,
+    },
+    label: {
+        fontSize: 16,
+        marginBottom: 8,
+        color: theme.colors.text.primary,
+    },
+    itemContainer: {
+        marginBottom: 16,
+    },
+    itemRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    itemInput: {
+        flex: 1,
+        marginRight: 8,
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+        width: '90%',
+        height: '80%',
+        backgroundColor: theme.colors.background,
+        borderRadius: 8,
+        padding: 16,
+    },
+    searchInput: {
+        marginBottom: 16,
+    },
+    itemText: {
+        padding: 12,
+        fontSize: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.colors.gray[200],
+    },
+    addRowButton: {
+        backgroundColor: 'black',
+        padding: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    addRowButtonText: {
+        color: theme.colors.white,
+        fontSize: 16,
+    },
+});

@@ -21,6 +21,12 @@ import NewCustomerScreen from './new-customer';
 import NewQuotationScreen from './new-quotation';
 import NewSalesOrderScreen from './new-sales-order';
 import NewContactScreen from './new-contact';
+import NewAddressScreen from './new-address';
+import AddressScreen from './address';
+import HrScreen from './hr';
+import NewItemScreen from './new-item';
+import TasksScreen from './tasks';
+import NewTaskScreen from './new-task';
 
 const Drawer = createDrawerNavigator();
 
@@ -62,7 +68,7 @@ export default function AppLayout() {
       })}
     >
       <Drawer.Screen name="dashboard" options={{ title: 'Dashboard' }}>
-        {() => <MainLayout><DashboardScreen /></MainLayout>}
+        {(props) => <MainLayout><DashboardScreen {...props} /></MainLayout>}
       </Drawer.Screen>
       <Drawer.Screen name="leaves" options={{ title: 'Leaves' }}>
         {() => <MainLayout><LeavesScreen /></MainLayout>}
@@ -102,6 +108,24 @@ export default function AppLayout() {
       </Drawer.Screen>
       <Drawer.Screen name="new-contact" options={{ title: 'New Contact' }}>
         {() => <MainLayout><NewContactScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="new-address" options={{ title: 'New Address' }}>
+        {() => <MainLayout><NewAddressScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="address" options={{ title: 'Address' }}>
+        {() => <MainLayout><AddressScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="new-item" options={{ title: 'New Item' }}>
+        {() => <MainLayout><NewItemScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="tasks" options={{ title: 'Task' }}>
+        {() => <MainLayout><TasksScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="new-task" options={{ title: 'New Task' }}>
+        {() => <MainLayout><NewTaskScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="hr" options={{ title: 'HR Dashboard' }}>
+        {() => <MainLayout><HrScreen /></MainLayout>}
       </Drawer.Screen>
     </Drawer.Navigator>
   );

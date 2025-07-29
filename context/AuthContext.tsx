@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loginToERPNext } from '@/services/api';
 import { startBackgroundLocation, stopBackgroundLocation } from '@/services/backgroundLocation';
+import { registerForPushNotificationsAsync, savePushToken } from '@/services/notifications';
 
 type User = {
   id: string;
@@ -14,7 +15,9 @@ type User = {
   mobile: string;
   passport_nid: string;
   date_of_joining: string;
-  user_image: string | null;
+  user_image?: string | null;
+  company: string;
+  employee_id: string;
 };
 
 type AuthContextType = {
@@ -145,6 +148,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(user);
       setIsAuthenticated(true);
       await startBackgroundLocation();
+
+      const pushToken = await registerForPushNotificationsAsync();
+      if (pushToken) {
+        await savePushToken(pushToken);
+      }
     } catch (error: any) {
       console.error('Login error:', error);
       setError(error.message || 'Authentication failed. Please check your credentials.');

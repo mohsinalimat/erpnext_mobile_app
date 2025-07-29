@@ -42,7 +42,25 @@ export const getCustomers = async (filters = [], fields = '["name", "customer_na
 
 export const createCustomer = async (customerData: any) => {
   try {
-    const response = await api.post('/api/resource/Customer', { data: customerData });
+    // Ensure addresses and contacts are handled correctly
+    const { addresses, primary_address, primary_contact, ...rest } = customerData;
+
+    const doc: any = {
+      ...rest,
+      // Assuming your ERPNext Customer Doctype has these fields
+      primary_address: primary_address,
+      primary_contact: primary_contact,
+    };
+
+    // If you have a child table for addresses, you would map them here
+    if (addresses && addresses.length > 0) {
+      doc.addresses = addresses.map((addr: any) => ({
+        address_line1: addr.address_line1,
+        // map other address fields
+      }));
+    }
+
+    const response = await api.post('/api/resource/Customer', { data: doc });
     return response.data.data;
   } catch (error: any) {
     console.error('Failed to create customer:', error.response?.data || error.message);
@@ -346,6 +364,58 @@ export const createTask = async (taskData: any) => {
     return response.data.data;
   } catch (error: any) {
     console.error('Failed to create task:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// =================================================================
+// Employee Advance
+// =================================================================
+
+export const createEmployeeAdvance = async (employeeAdvanceData: any) => {
+  try {
+    const response = await api.post('/api/resource/Employee Advance', { data: employeeAdvanceData });
+    return response.data.data;
+  } catch (error: any) {
+    console.error('Failed to create employee advance:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// =================================================================
+// Expense Claim
+// =================================================================
+
+export const createExpenseClaim = async (expenseClaimData: any) => {
+  try {
+    const response = await api.post('/api/resource/Expense Claim', { data: expenseClaimData });
+    return response.data.data;
+  } catch (error: any) {
+    console.error('Failed to create expense claim:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const getExpenseClaimByName = async (name: string) => {
+  try {
+    const response = await api.get(`/api/resource/Expense Claim/${name}`);
+    return response.data.data;
+  } catch (error: any) {
+    console.error(`Failed to fetch expense claim ${name}:`, error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// =================================================================
+// Leave Application
+// =================================================================
+
+export const createLeaveApplication = async (leaveApplicationData: any) => {
+  try {
+    const response = await api.post('/api/resource/Leave Application', { data: leaveApplicationData });
+    return response.data.data;
+  } catch (error: any) {
+    console.error('Failed to create leave application:', error.response?.data || error.message);
     throw error;
   }
 };

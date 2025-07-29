@@ -38,7 +38,8 @@ export default function NewCustomerScreen2() {
   const [city, setCity] = useState(null);
   const [accountManager, setAccountManager] = useState(null);
   const [billingCurrency, setBillingCurrency] = useState('BDT');
-  const [primaryContact, setPrimaryContact] = useState('');
+  const [primaryContact, setPrimaryContact] = useState<string | null>(null);
+  const [primaryAddress, setPrimaryAddress] = useState<string | null>(null);
   const [addresses, setAddresses] = useState<any[]>([]); // To store selected addresses
   const params = useLocalSearchParams();
 
@@ -60,7 +61,7 @@ export default function NewCustomerScreen2() {
   const [cities, setCities] = useState<{label: string, value: string}[]>([]);
   const [accountManagers, setAccountManagers] = useState<{label: string, value: string}[]>([]);
   const [currencies, setCurrencies] = useState<{label: string, value: string}[]>([]);
-  const [primaryContacts, setPrimaryContacts] = useState<{label: string, value: string}[]>([]);
+  const [primaryContacts, setPrimaryContacts] = useState<any[]>([]);
   const [addressItems, setAddressItems] = useState<{label: string, value: string}[]>([]);
   const [allAddressObjects, setAllAddressObjects] = useState<any[]>([]);
 
@@ -82,7 +83,7 @@ export default function NewCustomerScreen2() {
         fetchDocTypeData('Territory', ['name']), // Using Territory for City as per user feedback
         fetchDocTypeData('User', ['name', 'full_name'], [['enabled', '=', 1]]),
         fetchDocTypeData('Currency', ['name']),
-        fetchDocTypeData('Contact', ['name', 'full_name']),
+        fetchDocTypeData('Contact', ['name', 'full_name', 'email_id', 'mobile_no', 'phone', 'address']),
         fetchDocTypeData('Address', ['name', 'address_line1']),
       ]);
 
@@ -94,7 +95,8 @@ export default function NewCustomerScreen2() {
       setCities(uniqueBy(cityData as NameData[], d => d.name).map((d: NameData) => ({ label: d.name, value: d.name })));
       setAccountManagers(uniqueBy(accountManagerData as NameData[], d => d.name).map((d: NameData) => ({ label: d.full_name || d.name, value: d.name })));
       setCurrencies(uniqueBy(currencyData as NameData[], d => d.name).map((d: NameData) => ({ label: d.name, value: d.name })));
-      setPrimaryContacts(uniqueBy(contactData as NameData[], d => d.name).map((d: NameData) => ({ label: d.full_name || d.name, value: d.name })));
+      const contactsWithDetails = uniqueBy(contactData as any[], d => d.name);
+      setPrimaryContacts(contactsWithDetails.map((d: any) => ({ label: d.full_name || d.name, value: d.name, ...d })));
       const uniqueAddresses = uniqueBy(addressData as any[], d => d.name);
       setAddressItems(uniqueAddresses.map((d: any) => ({ label: d.address_line1, value: d.name })));
       setAllAddressObjects(uniqueAddresses);
@@ -113,7 +115,7 @@ export default function NewCustomerScreen2() {
 
   useEffect(() => {
     if (params.selectedContact) {
-      setPrimaryContact(params.selectedContact as string);
+      setPrimaryContact(params.selectedContact as any);
     }
     if (params.selectedAddress) {
       const newAddress = JSON.parse(params.selectedAddress as string);
@@ -152,6 +154,7 @@ export default function NewCustomerScreen2() {
         account_manager: accountManager,
         billing_currency: billingCurrency,
         primary_contact: primaryContact,
+        primary_address: primaryAddress,
         addresses: addresses, // Pass addresses
       });
       if (result.offline) {
@@ -165,21 +168,7 @@ export default function NewCustomerScreen2() {
     } finally {
       setLoading(false);
     }
-  }, [isConnected, customerName, customerType, customerGroup, territory, city, accountManager, billingCurrency, primaryContact, addresses]);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        loading ? (
-          <ActivityIndicator size="small" color={theme.colors.primary[500]} style={{ marginRight: 15 }} />
-        ) : (
-          <TouchableOpacity onPress={handleCreateCustomer} style={{ backgroundColor: 'black', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8, marginRight: 15 }}>
-            <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>Save</Text>
-          </TouchableOpacity>
-        )
-      ),
-    });
-  }, [navigation, loading, handleCreateCustomer]);
+  }, [isConnected, customerName, customerType, customerGroup, territory, city, accountManager, billingCurrency, primaryContact, primaryAddress, addresses]);
 
   if (dropdownLoading) {
     return (
@@ -290,53 +279,42 @@ export default function NewCustomerScreen2() {
         />
 
         <Text style={styles.label}>Primary Contact</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ flex: 1 }}>
-            <DropDownPicker
-              open={openPrimaryContact}
-              value={primaryContact}
-              items={primaryContacts}
-              setOpen={setOpenPrimaryContact}
-              setValue={setPrimaryContact}
-              setItems={setPrimaryContacts}
-              searchable={true}
-              placeholder="Select Primary Contact"
-              style={styles.pickerContainer}
-              listMode="MODAL"
-            />
-          </View>
-          <TouchableOpacity onPress={() => router.push('/new-contact')} style={{ marginLeft: 10, padding: 10, justifyContent: 'center' }}>
-            <Feather name="plus-circle" size={28} color={theme.colors.primary[500]} />
-          </TouchableOpacity>
-        </View>
+        <DropDownPicker
+          open={openPrimaryContact}
+          value={primaryContact}
+          items={primaryContacts}
+          setOpen={setOpenPrimaryContact}
+          setValue={setPrimaryContact}
+          setItems={setPrimaryContacts}
+          searchable={true}
+          placeholder="Select Primary Contact"
+          style={styles.pickerContainer}
+          listMode="MODAL"
+        />
 
-        <Text style={styles.label}>Address</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ flex: 1 }}>
-            <DropDownPicker
-              open={openAddress}
-              value={addresses.map(a => a.name)}
-              items={addressItems}
-              setOpen={setOpenAddress}
-              setValue={namesCallback => {
-                const currentNames = addresses.map(a => a.name);
-                const newNames = typeof namesCallback === 'function' ? namesCallback(currentNames) : namesCallback;
-                const selectedObjects = allAddressObjects.filter(a => newNames.includes(a.name));
-                setAddresses(selectedObjects);
-              }}
-              setItems={setAddressItems}
-              searchable={true}
-              multiple={true}
-              placeholder="Select Address"
-              style={styles.pickerContainer}
-              listMode="MODAL"
-            />
-          </View>
-          <TouchableOpacity onPress={() => router.push('/new-address')} style={{ marginLeft: 10, padding: 10, justifyContent: 'center' }}>
-            <Feather name="plus-circle" size={28} color={theme.colors.primary[500]} />
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.label}>Primary Address</Text>
+        <DropDownPicker
+          open={openAddress}
+          value={primaryAddress}
+          items={addressItems}
+          setOpen={setOpenAddress}
+          setValue={setPrimaryAddress}
+          setItems={setAddressItems}
+          searchable={true}
+          placeholder="Select Primary Address"
+          style={styles.pickerContainer}
+          listMode="MODAL"
+        />
       </ScrollView>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity onPress={handleCreateCustomer} style={styles.createButton} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color={theme.colors.white} />
+          ) : (
+            <Text style={styles.createButtonText}>Save</Text>
+          )}
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -344,28 +322,33 @@ export default function NewCustomerScreen2() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: theme.colors.gray[50],
   },
   scrollContentContainer: {
     padding: 16,
-    backgroundColor: theme.colors.background,
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: theme.colors.gray[50],
   },
   label: {
-    fontSize: 16,
+    fontSize: 14,
+    fontWeight: '600',
     marginBottom: 8,
-    color: theme.colors.text.primary,
+    color: theme.colors.gray[700],
   },
   input: {
     backgroundColor: theme.colors.white,
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderRadius: 8,
     marginBottom: 16,
     fontSize: 16,
     color: theme.colors.text.primary,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[300],
   },
   pickerContainer: {
     backgroundColor: theme.colors.white,
@@ -373,46 +356,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: theme.colors.gray[300],
-  },
-  picker: {
-    height: 50,
-    width: '100%',
-    color: theme.colors.text.primary,
-  },
-  pickerItem: {
-    color: theme.colors.text.primary,
-  },
-  addressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  addressInput: {
-    flex: 1,
-    marginBottom: 0, // Remove bottom margin as it's part of a row
-    marginRight: 10,
-  },
-  addAddressButton: {
-    backgroundColor: theme.colors.primary[500],
-    borderRadius: 8,
-    padding: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  selectedAddressesContainer: {
-    marginBottom: 16,
-    padding: 10,
-    backgroundColor: theme.colors.gray[100],
-    borderRadius: 8,
-  },
-  selectedAddressText: {
-    fontSize: 14,
-    color: theme.colors.text.secondary,
-    marginBottom: 5,
+    zIndex: 1000,
   },
   buttonContainer: {
     padding: 16,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.white,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.gray[200],
   },
   createButton: {
     backgroundColor: theme.colors.primary[500],

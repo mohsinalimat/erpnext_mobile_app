@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { View, Text, FlatList, ActivityIndicator, StyleSheet, Pressable, TextInput, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { View, Text, FlatList, ActivityIndicator, StyleSheet, Pressable, TextInput, TouchableOpacity, RefreshControl } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { getCustomers } from '@/services/offline';
 import { useTheme } from '@/context/ThemeContext';
@@ -11,6 +11,7 @@ export default function CustomersScreen() {
   const { isConnected } = useNetwork();
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -21,20 +22,26 @@ export default function CustomersScreen() {
     );
   }, [customers, searchQuery]);
 
-  useEffect(() => {
-    async function fetchCustomers() {
-      if (isConnected === null) return;
-      try {
-        const data = await getCustomers(isConnected);
-        setCustomers(data);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load customers');
-      } finally {
-        setLoading(false);
-      }
+  const fetchCustomers = useCallback(async () => {
+    if (isConnected === null) return;
+    try {
+      const data = await getCustomers(isConnected);
+      setCustomers(data);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load customers');
     }
-    fetchCustomers();
   }, [isConnected]);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchCustomers().finally(() => setLoading(false));
+  }, [fetchCustomers]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchCustomers();
+    setRefreshing(false);
+  }, [fetchCustomers]);
 
   if (loading) {
     return (
@@ -85,7 +92,7 @@ export default function CustomersScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-        <TouchableOpacity style={styles.addButton} onPress={() => router.push('/(app)/new-customer')}>
+        <TouchableOpacity style={styles.addButton} onPress={() => router.push('/new-customer' as any)}>
           <Feather name="plus" size={24} color={theme.colors.white} />
         </TouchableOpacity>
       </View>
@@ -99,6 +106,9 @@ export default function CustomersScreen() {
           keyExtractor={(item) => item.name}
           renderItem={renderItem}
           contentContainerStyle={styles.listContainer}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
       )}
     </View>

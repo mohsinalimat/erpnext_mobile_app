@@ -41,9 +41,9 @@ export default function ContactScreen() {
   const handleSelectContact = (contact: any) => {
     if (fromNewCustomer) {
       router.push({
-        pathname: '/(app)/new-customer',
+        pathname: '/new-customer',
         params: { selectedContact: contact.name },
-      });
+      } as any);
     }
   };
 
@@ -114,7 +114,7 @@ export default function ContactScreen() {
       )}
       <TouchableOpacity
         style={styles.createButton}
-        onPress={() => router.push('/(app)/new-contact')}
+        onPress={() => router.push('/new-contact' as any)}
       >
         <Feather name="plus" size={24} color={theme.colors.white} />
       </TouchableOpacity>

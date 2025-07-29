@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { theme } from '@/constants/theme';
 
 interface DashboardCardProps {
   title: string;
   value: string;
-  icon: React.ReactNode;
+  icon: React.ComponentProps<typeof Feather>['name'];
   color: string;
   containerStyle?: ViewStyle;
 }
@@ -21,7 +22,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
     <View style={[styles.container, containerStyle]}>
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
-        {icon}
+        <Feather name={icon} size={24} color={theme.colors.text.secondary} />
       </View>
       <Text style={[styles.value, { color }]}>{value}</Text>
     </View>

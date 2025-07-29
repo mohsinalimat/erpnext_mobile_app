@@ -10,7 +10,7 @@ export default function MainMenu() {
 
   useEffect(() => {
     if (isInitialized && !isAuthenticated) {
-      router.replace('/login');
+      router.replace('/login' as any);
     }
   }, [isInitialized, isAuthenticated]);
 
@@ -74,6 +74,27 @@ export default function MainMenu() {
       icon: 'user',
       color: '#6366F1',
       route: '/profile'
+    },
+    {
+      title: 'Employee Advance',
+      subtitle: 'Request an advance',
+      icon: 'dollar-sign',
+      color: '#8B5CF6',
+      route: '/new-employee-advance'
+    },
+    {
+      title: 'Expense Claim',
+      subtitle: 'Submit an expense',
+      icon: 'file-plus',
+      color: '#EF4444',
+      route: '/new-expense-claim'
+    },
+    {
+      title: 'Leave Application',
+      subtitle: 'Request a leave',
+      icon: 'calendar',
+      color: '#10B981',
+      route: '/leave-application'
     }
   ];
 

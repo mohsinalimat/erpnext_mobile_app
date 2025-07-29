@@ -1,103 +1,88 @@
-import { Stack, router, usePathname } from 'expo-router';
-import { Button, View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
+import * as Notifications from 'expo-notifications';
+import { useEffect, useRef } from 'react';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { Ionicons } from '@expo/vector-icons';
+import { TouchableOpacity } from 'react-native';
+import CustomDrawer from '../../components/navigation/NavigationDrawer';
 import MainLayout from '../../components/layout/MainLayout';
-import { theme } from '@/constants/theme';
+import DashboardScreen from './dashboard';
+import LeavesScreen from './leaves';
+import ExpensesScreen from './expenses';
+import SalaryScreen from './salary';
+import CustomersScreen from './customers';
+import ContactScreen from './contact';
+import QuotationScreen from './quotation';
+import ItemsScreen from './items';
+import AttendanceScreen from './attendance';
 
-const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
-  const pathname = usePathname();
-  const noLayoutScreens = ['/new-quotation'];
-
-  if (noLayoutScreens.includes(pathname)) {
-    return <View style={{ flex: 1, backgroundColor: theme.colors.background }}>{children}</View>;
-  }
-
-  return <MainLayout>{children}</MainLayout>;
-};
+const Drawer = createDrawerNavigator();
 
 export default function AppLayout() {
   useKeepAwake();
+  const notificationListener = useRef<Notifications.Subscription | undefined>(undefined);
+  const responseListener = useRef<Notifications.Subscription | undefined>(undefined);
+
+  useEffect(() => {
+    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+      console.log(notification);
+    });
+
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      const { doctype, docname } = response.notification.request.content.data;
+      if (doctype === 'Leave Application') {
+        router.push(`/leave-application-detail/${docname}` as any);
+      }
+    });
+
+    return () => {
+      Notifications.removeNotificationSubscription(notificationListener.current!);
+      Notifications.removeNotificationSubscription(responseListener.current!);
+    };
+  }, []);
+
   return (
-    <LayoutWrapper>
-      <Stack>
-        <Stack.Screen
-          name="address"
-          options={{
-            title: 'Address',
-            headerRight: () => (
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => router.push('/(app)/new-address')}
-              >
-                <Text style={styles.buttonText}>+ Add Address</Text>
-              </TouchableOpacity>
-            ),
-          }}
-        />
-        <Stack.Screen name="check-in-out" options={{ title: 'Check In/Out' }} />
-        <Stack.Screen name="contact" options={{ title: 'Contact' }} />
-        <Stack.Screen name="customer-preview" options={{ title: 'Customer Preview' }} />
-        <Stack.Screen name="customers" options={{ title: 'Customers' }} />
-        <Stack.Screen name="home" options={{ title: 'Home' }} />
-        <Stack.Screen name="item-preview" options={{ title: 'Item Preview' }} />
-        <Stack.Screen name="items" options={{ title: 'Items' }} />
-        <Stack.Screen name="mainmenu" options={{ title: 'Prime ERP Mobile', headerShown: false }} />
-        <Stack.Screen name="new-address" options={{ title: 'New Address' }} />
-        <Stack.Screen name="new-contact" options={{ title: 'New Contact' }} />
-        <Stack.Screen name="new-customer" options={{ title: 'New Customer' }} />
-        <Stack.Screen
-          name="new-item"
-          options={{
-            title: 'New Item',
-            headerRight: () => (
-              <Button
-                onPress={() => router.push({ pathname: '/(app)/new-item', params: { create: 'true' } })}
-                title="Create"
-              />
-            ),
-          }}
-        />
-        <Stack.Screen
-          name="new-quotation"
-          options={{
-            title: 'New Quotation',
-            headerShown: false,
-            headerRight: () => (
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => router.push({ pathname: '/(app)/new-quotation', params: { create: 'true' } })}
-              >
-                <Text style={styles.buttonText}>Save</Text>
-              </TouchableOpacity>
-            ),
-          }}
-        />
-        <Stack.Screen name="new-sales-order" options={{ title: 'New Sales Order' }} />
-        <Stack.Screen name="new-task" options={{ title: 'New Task' }} />
-        <Stack.Screen name="profile" options={{ title: 'Profile' }} />
-        <Stack.Screen name="quotation-detail" options={{ title: 'Quotation Detail' }} />
-        <Stack.Screen name="quotation" options={{ title: 'Quotation' }} />
-        <Stack.Screen name="sales-order-preview" options={{ title: 'Sales Order Preview' }} />
-        <Stack.Screen name="sales-order" options={{ title: 'Sales Order' }} />
-        <Stack.Screen name="settings" options={{ title: 'Settings' }} />
-        <Stack.Screen name="task-preview" options={{ title: 'Task Preview' }} />
-        <Stack.Screen name="tasks" options={{ title: 'Tasks' }} />
-      </Stack>
-    </LayoutWrapper>
+    <Drawer.Navigator
+      drawerContent={(props) => <CustomDrawer {...props} />}
+      screenOptions={({ navigation }) => ({
+        headerLeft: () => (
+          <TouchableOpacity
+            style={{ marginLeft: 15 }}
+            onPress={() => navigation.toggleDrawer()}
+          >
+            <Ionicons name="menu" size={24} color="black" />
+          </TouchableOpacity>
+        ),
+      })}
+    >
+      <Drawer.Screen name="dashboard" options={{ title: 'Dashboard' }}>
+        {() => <MainLayout><DashboardScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="leaves" options={{ title: 'Leaves' }}>
+        {() => <MainLayout><LeavesScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="expenses" options={{ title: 'Expenses' }}>
+        {() => <MainLayout><ExpensesScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="salary" options={{ title: 'Salary Slips' }}>
+        {() => <MainLayout><SalaryScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="attendance" options={{ title: 'Attendance' }}>
+        {() => <MainLayout><AttendanceScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="customers" options={{ title: 'Customers' }}>
+        {() => <MainLayout><CustomersScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="contact" options={{ title: 'Contacts' }}>
+        {() => <MainLayout><ContactScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="quotation" options={{ title: 'Quotations' }}>
+        {() => <MainLayout><QuotationScreen /></MainLayout>}
+      </Drawer.Screen>
+      <Drawer.Screen name="items" options={{ title: 'Items' }}>
+        {() => <MainLayout><ItemsScreen /></MainLayout>}
+      </Drawer.Screen>
+    </Drawer.Navigator>
   );
 }
-
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: theme.colors.black,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  buttonText: {
-    color: theme.colors.white,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-});

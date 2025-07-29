@@ -1,15 +1,18 @@
 import React from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BottomNavigation from '../navigation/BottomNavigation';
 import { theme } from '@/constants/theme';
+import { useNavigation } from '@react-navigation/native';
+import { DrawerActions } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  showBottomNav?: boolean;
 }
 
-export default function MainLayout({ children, showBottomNav = true }: MainLayoutProps) {
+export default function MainLayout({ children }: MainLayoutProps) {
+  const navigation = useNavigation();
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -19,7 +22,6 @@ export default function MainLayout({ children, showBottomNav = true }: MainLayou
       >
         <View style={styles.content}>{children}</View>
       </KeyboardAvoidingView>
-      {showBottomNav && <BottomNavigation />}
     </SafeAreaView>
   );
 }

@@ -40,7 +40,7 @@ export const loginToERPNext = async (
     // Get user profile information
     const profileResponse = await api.get(`/api/resource/User/${email}`);
     const employeeResponse = await api.get(
-      `/api/resource/Employee?filters=[["user_id","=","${email}"]]&fields=["gender","cell_number","passport_number","date_of_joining"]`
+      `/api/resource/Employee?filters=[["user_id","=","${email}"]]&fields=["name","gender","cell_number","passport_number","date_of_joining","company"]`
     );
 
     const employeeData = employeeResponse.data.data[0] || {};
@@ -59,6 +59,8 @@ export const loginToERPNext = async (
         passport_nid: employeeData.passport_number || 'N/A',
         date_of_joining: employeeData.date_of_joining || 'N/A',
         user_image: profileResponse.data.data.user_image || null,
+        company: employeeData.company || 'N/A',
+        employee_id: employeeData.name || 'N/A',
       },
       token: `${API_KEY}:${API_SECRET}`,
     };
@@ -452,5 +454,89 @@ export const uploadFile = async (file: any) => {
     throw error;
   }
 };
+
+export const getCompanyInfo = async (email: string) => {
+  try {
+    const response = await api.get(
+      `/api/resource/Employee?filters=[["user_id","=","${email}"]]&fields=["company","department","designation","branch","grade","reports_to","employment_type"]`
+    );
+    return response.data.data[0] || {};
+  } catch (error) {
+    console.error('Error fetching company info:', error);
+    return {};
+  }
+};
+
+export const getSalarySlips = async (employeeId: string) => {
+  try {
+    const response = await api.get(
+      `/api/resource/Salary Slip?filters=[["employee","=","${employeeId}"]]&fields=["name","posting_date","gross_pay","net_pay"]&order_by=posting_date desc`
+    );
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching salary slips:', error);
+    return [];
+  }
+};
+
+export const getSalarySlipDetail = async (slipId: string) => {
+  try {
+    const response = await api.get(`/api/resource/Salary Slip/${slipId}`);
+    return response.data.data || null;
+  } catch (error) {
+    console.error('Error fetching salary slip detail:', error);
+    return null;
+  }
+};
+
+export const getCompanyCurrency = async (company: string) => {
+  try {
+    if (!company || company === 'N/A') {
+      // Fallback to the first available company if not specified
+      const response = await api.get('/api/method/frappe.client.get_value', {
+        params: {
+          doctype: 'Company',
+          filters: JSON.stringify({ is_group: 0 }),
+          fieldname: 'default_currency',
+        },
+      });
+      return response.data.message?.default_currency || 'USD';
+    }
+    const response = await api.get('/api/method/frappe.client.get_value', {
+      params: {
+        doctype: 'Company',
+        filters: JSON.stringify({ name: company }),
+        fieldname: 'default_currency',
+      },
+    });
+    return response.data.message?.default_currency || 'USD';
+  } catch (error) {
+    console.error('Error fetching company currency:', error);
+    return 'USD'; // Fallback currency
+  }
+};
+
+export const getYearToDateSalaryData = async (employeeId: string, year: number) => {
+  try {
+    const response = await api.get(
+      `/api/resource/Salary Slip`, {
+        params: {
+          filters: JSON.stringify([
+            ["employee", "=", employeeId],
+            ["docstatus", "=", 1],
+            ["posting_date", ">=", `${year}-01-01`],
+            ["posting_date", "<=", `${year}-12-31`]
+          ]),
+          fields: JSON.stringify(["name", "posting_date", "gross_pay", "net_pay", "earnings", "deductions"]),
+          limit_page_length: 100,
+        }
+      }
+    );
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching year to date salary data:', error);
+    return [];
+  }
+}
 
 export default api;

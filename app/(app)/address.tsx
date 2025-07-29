@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, TextInput } from 'react-native';
 import { fetchDocTypeData } from '@/services/api';
 import { theme } from '@/constants/theme';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
@@ -7,6 +7,7 @@ import { Feather } from '@expo/vector-icons';
 
 export default function AddressScreen() {
   const [addresses, setAddresses] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const params = useLocalSearchParams();
   const fromNewCustomer = params.from === '/(app)/new-customer';
@@ -38,9 +39,9 @@ export default function AddressScreen() {
   const handleSelectAddress = (address: any) => {
     if (fromNewCustomer) {
       router.push({
-        pathname: '/(app)/new-customer',
+        pathname: '/new-customer',
         params: { selectedAddress: JSON.stringify(address) },
-      });
+      } as any);
     }
   };
 
@@ -67,6 +68,12 @@ export default function AddressScreen() {
     </TouchableOpacity>
   );
 
+  const filteredAddresses = useMemo(() => {
+    return addresses.filter(address =>
+      `${address.address_line1} ${address.city} ${address.state}`.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [addresses, searchQuery]);
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -77,9 +84,15 @@ export default function AddressScreen() {
 
   return (
     <View style={styles.container}>
-      {addresses.length > 0 ? (
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Search Addresses..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
+      {filteredAddresses.length > 0 ? (
         <FlatList
-          data={addresses}
+          data={filteredAddresses}
           renderItem={renderItem}
           keyExtractor={(item) => item.name}
           contentContainerStyle={styles.listContainer}
@@ -89,6 +102,12 @@ export default function AddressScreen() {
           <Text>No addresses found.</Text>
         </View>
       )}
+      <TouchableOpacity
+        style={styles.createButton}
+        onPress={() => router.push('/new-address' as any)}
+      >
+        <Feather name="plus" size={24} color={theme.colors.white} />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -97,6 +116,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  searchInput: {
+    height: 40,
+    borderColor: theme.colors.gray[300],
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    margin: 16,
+    backgroundColor: theme.colors.white,
   },
   center: {
     flex: 1,
@@ -137,5 +165,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: theme.colors.text.secondary,
     marginLeft: 8,
+  },
+  createButton: {
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
+    backgroundColor: theme.colors.primary[500],
+    borderRadius: 50,
+    width: 56,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
